@@ -126,14 +126,9 @@ public class TelaDashboard extends JFrame {
         header.setOpaque(false); //deixa transparente
         header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
-        JTextField txtBusca = new JTextField(" Buscar transações, contas...");
-        txtBusca.setPreferredSize(new Dimension(280, 32));
-        txtBusca.setForeground(Color.GRAY);
-
         JLabel lblUser = new JLabel("Jefferson Riper (Administrador)");
         lblUser.setFont(new Font("SansSerif", Font.BOLD, 12));
 
-        header.add(txtBusca, BorderLayout.WEST);
         header.add(lblUser, BorderLayout.EAST);
         area.add(header, BorderLayout.NORTH);
 
