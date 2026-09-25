@@ -20,12 +20,12 @@ public class TelaContas extends JFrame {
     private static final Color COR_BORDA = new Color(226, 232, 240);
 
     private static final Color COR_AZUL = new Color(37, 99, 235);
-    private static final Color COR_VERDE = new Color(16, 185, 129);
     private static final Color COR_AMARELO = new Color(245, 158, 11);
     private static final Color COR_VERMELHO = new Color(239, 68, 68);
 
     private JPanel painelCards;
     private JPanel painelTabela;
+    private JPanel conteudo;
 
     private JButton btnPagar;
     private JButton btnReceber;
@@ -55,7 +55,7 @@ public class TelaContas extends JFrame {
 
         JLabel lblLogo = new JLabel(
                 "<html><b>ERP Finance</b><br/>" +
-                "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"
+                        "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"
         );
 
         lblLogo.setForeground(Color.WHITE);
@@ -188,19 +188,7 @@ public class TelaContas extends JFrame {
                 )
         );
 
-        JTextField txtBusca =
-                new JTextField(
-                        " Buscar transações, contas..."
-                );
 
-        txtBusca.setPreferredSize(
-                new Dimension(
-                        280,
-                        32
-                )
-        );
-
-        txtBusca.setForeground(Color.GRAY);
 
         JLabel lblUser =
                 new JLabel(
@@ -215,10 +203,6 @@ public class TelaContas extends JFrame {
                 )
         );
 
-        header.add(
-                txtBusca,
-                BorderLayout.WEST
-        );
 
         header.add(
                 lblUser,
@@ -230,7 +214,7 @@ public class TelaContas extends JFrame {
 
     private JPanel criarConteudo() {
 
-        JPanel conteudo =
+        conteudo =
                 new JPanel();
 
         conteudo.setLayout(
@@ -254,7 +238,7 @@ public class TelaContas extends JFrame {
         JLabel titulo =
                 new JLabel(
                         "<html><h2 style='margin:0;'>Contas a Pagar e Receber</h2>" +
-                        "<span style='color:gray;'>Gerencie suas contas, vencimentos e recebimentos</span></html>"
+                                "<span style='color:gray;'>Gerencie suas contas, vencimentos e recebimentos</span></html>"
                 );
 
         titulo.setAlignmentX(
@@ -266,7 +250,6 @@ public class TelaContas extends JFrame {
         conteudo.add(
                 Box.createVerticalStrut(15)
         );
-
 
         JPanel seletor = criarSeletor();
 
@@ -288,8 +271,7 @@ public class TelaContas extends JFrame {
                 Box.createVerticalStrut(15)
         );
 
-        painelTabela =
-                criarTabela(tipoAtual);
+        painelTabela = criarTabela(tipoAtual);
 
         painelTabela.setAlignmentX(
                 Component.LEFT_ALIGNMENT
@@ -299,7 +281,6 @@ public class TelaContas extends JFrame {
 
         return conteudo;
     }
-
 
     private JPanel criarSeletor() {
 
@@ -395,38 +376,58 @@ public class TelaContas extends JFrame {
             String novoTipo
     ) {
 
+        if (tipoAtual.equals(novoTipo)) {
+            return;
+        }
+
         tipoAtual = novoTipo;
 
-        painelCards.removeAll();
+        JPanel novaTabela =
+                criarTabela(tipoAtual);
+
+        novaTabela.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        int indiceTabela =
+                conteudo.getComponentZOrder(
+                        painelTabela
+                );
+
+        conteudo.remove(painelTabela);
+
+        painelTabela = novaTabela;
+
+        conteudo.add(
+                painelTabela,
+                indiceTabela
+        );
 
         JPanel novosCards =
                 criarCards();
 
-        Component[] componentes =
-                novosCards.getComponents();
-
-        for (Component componente : componentes) {
-            painelCards.add(componente);
-        }
-
-        painelTabela.removeAll();
-
-        painelTabela.setLayout(
-                new BorderLayout()
+        novosCards.setAlignmentX(
+                Component.LEFT_ALIGNMENT
         );
 
-        painelTabela.add(
-                criarTabela(tipoAtual),
-                BorderLayout.CENTER
+        int indiceCards =
+                conteudo.getComponentZOrder(
+                        painelCards
+                );
+
+        conteudo.remove(painelCards);
+
+        painelCards = novosCards;
+
+        conteudo.add(
+                painelCards,
+                indiceCards
         );
 
         atualizarBotoes();
 
-        painelCards.revalidate();
-        painelCards.repaint();
-
-        painelTabela.revalidate();
-        painelTabela.repaint();
+        conteudo.revalidate();
+        conteudo.repaint();
     }
 
     private void atualizarBotoes() {
@@ -491,13 +492,17 @@ public class TelaContas extends JFrame {
         );
 
         ArrayList<Contas> dados =
-                criarDados(tipoAtual);
+                Contas.getContas();
 
         double total = 0;
         double pendente = 0;
         double atrasado = 0;
 
         for (Contas conta : dados) {
+
+            if (!conta.getTipo().equals(tipoAtual)) {
+                continue;
+            }
 
             total += conta.getValor();
 
@@ -688,9 +693,13 @@ public class TelaContas extends JFrame {
                 };
 
         ArrayList<Contas> dados =
-                criarDados(tipo);
+                Contas.getContas();
 
         for (Contas conta : dados) {
+
+            if (!conta.getTipo().equals(tipo)) {
+                continue;
+            }
 
             modelo.addRow(
                     new Object[]{
@@ -807,7 +816,8 @@ public class TelaContas extends JFrame {
                         new StatusRenderer()
                 );
     }
-    private class StatusRenderer
+
+    private static class StatusRenderer
             extends DefaultTableCellRenderer {
 
         @Override
@@ -899,110 +909,8 @@ public class TelaContas extends JFrame {
             return label;
         }
     }
-    private ArrayList<Contas> criarDados(
-            String tipo
-    ) {
 
-        ArrayList<Contas> dados =
-                new ArrayList<>();
-
-        if (tipo.equals("PAGAR")) {
-
-            dados.add(
-                    new Contas(
-                            "Amazon",
-                            "Locação Servidores",
-                            "15/08/2026",
-                            4500.00,
-                            "PAGAR",
-                            "Vencida"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Microsoft",
-                            "Licenças Office",
-                            "20/09/2026",
-                            3200.00,
-                            "PAGAR",
-                            "Pendente"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Xavier",
-                            "Assessoria Jurídica",
-                            "05/08/2026",
-                            8500.00,
-                            "PAGAR",
-                            "Paga"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Imobiliária",
-                            "Aluguel Sala",
-                            "10/10/2026",
-                            12000.00,
-                            "PAGAR",
-                            "Pendente"
-                    )
-            );
-
-        } else {
-
-            dados.add(
-                    new Contas(
-                            "Tech Solutions",
-                            "Impl. ERP",
-                            "01/08/2026",
-                            15000.00,
-                            "RECEBER",
-                            "Recebida"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Metalúrgica",
-                            "Consultoria",
-                            "12/08/2026",
-                            8540.00,
-                            "RECEBER",
-                            "Atrasada"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Hospital",
-                            "Manut. Hardware",
-                            "25/08/2026",
-                            3800.00,
-                            "RECEBER",
-                            "Pendente"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Banco Nacional",
-                            "Suporte TI",
-                            "18/08/2026",
-                            4500.00,
-                            "RECEBER",
-                            "Recebida"
-                    )
-            );
-        }
-
-        return dados;
-    }
-
- private String formatarValor(
+    private String formatarValor(
             double valor
     ) {
 
@@ -1011,6 +919,7 @@ public class TelaContas extends JFrame {
                 valor
         );
     }
+
     public static void main(
             String[] args
     ) {
@@ -1021,3 +930,4 @@ public class TelaContas extends JFrame {
         );
     }
 }
+
