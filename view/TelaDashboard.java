@@ -1,5 +1,7 @@
 package view;
 
+
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -22,7 +24,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -30,7 +31,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 public class TelaDashboard extends JFrame {
-
+    private JLabel lblUser;
     private static final long serialVersionUID = 1L;
 
     public TelaDashboard() { // configurações da janela, como altura, largura, titulo etc
@@ -44,6 +45,7 @@ public class TelaDashboard extends JFrame {
         add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
     }
+
 
     // menu lateral
     private JPanel criarSidebar() {
@@ -126,14 +128,11 @@ public class TelaDashboard extends JFrame {
         header.setOpaque(false); //deixa transparente
         header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
-        JTextField txtBusca = new JTextField(" Buscar transações, contas...");
-        txtBusca.setPreferredSize(new Dimension(280, 32));
-        txtBusca.setForeground(Color.GRAY);
+     
 
-        JLabel lblUser = new JLabel("Jefferson Riper (Administrador)");
+        lblUser = new JLabel("Não logado");
+
         lblUser.setFont(new Font("SansSerif", Font.BOLD, 12));
-
-        header.add(txtBusca, BorderLayout.WEST);
         header.add(lblUser, BorderLayout.EAST);
         area.add(header, BorderLayout.NORTH);
 
@@ -426,9 +425,17 @@ public class TelaDashboard extends JFrame {
         }
     }
 
+    public void identificarUsuario(String nome, String sessao) {
+        this.lblUser.setText(nome + " - " + sessao);
+
+    }
+
+
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             new TelaDashboard().setVisible(true);
         });
+
     }
 }
