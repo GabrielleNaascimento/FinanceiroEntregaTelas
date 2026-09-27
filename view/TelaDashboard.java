@@ -14,6 +14,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints; //aproveitei e peguei mais importações do próprio awt
+import java.util.List;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -29,8 +31,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import model.Despesas;
+import model.Usuario;
+import controller.DashboardController;
 
 public class TelaDashboard extends JFrame {
+    private List<Despesas> despesas = new ArrayList<>();
+    private PainelGraficoPizza painelGraficoPizza;
+
     private JLabel lblUser;
     private static final long serialVersionUID = 1L;
 
@@ -223,7 +231,8 @@ public class TelaDashboard extends JFrame {
         gbc.gridx = 1;
         gbc.weightx = 0.35;
         gbc.insets = new Insets(0, 0, 0, 0);
-        painel.add(new PainelGraficoPizza(), gbc);
+        painelGraficoPizza = new PainelGraficoPizza(despesas);
+        painel.add(painelGraficoPizza, gbc);
 
         return painel;
     }
@@ -346,6 +355,7 @@ public class TelaDashboard extends JFrame {
 
     // classe para desenho do grafico de linhas (só SWING)
     private static class PainelGraficoLinhas extends JPanel {
+
         public PainelGraficoLinhas() {
             setBackground(Color.WHITE);
             setBorder(BorderFactory.createCompoundBorder(
@@ -383,59 +393,221 @@ public class TelaDashboard extends JFrame {
         }
     }
 
+
+   
+
+
     // classe para desenhar o grafico de pizza (só SWING)
-    private static class PainelGraficoPizza extends JPanel {
-        public PainelGraficoPizza() {
-            setBackground(Color.WHITE);
-            setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(12, 12, 12, 12)
-            ));
-        }
+   private static class PainelGraficoPizza extends JPanel {
+    private List<Despesas> despesas;
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    public void atualizarDespesas(List<Despesas> despesas) {
+    this.despesas = despesas;
+    repaint();
+}
 
-            g2.setFont(new Font("SansSerif", Font.BOLD, 13));
-            g2.setColor(Color.BLACK);
-            g2.drawString("Despesas por Categoria", 12, 22);
+    public PainelGraficoPizza(List<Despesas> despesas) {
+        this.despesas = despesas;
 
-            int size = Math.min(getWidth(), getHeight()) - 70;
-            int x = 20;
-            int y = 45;
+        for (Despesas d : despesas) {
 
-            // fatias do grafico de pizza
-            g2.setColor(new Color(37, 99, 235)); // Folha Pag. (35%)
-            g2.fillArc(x, y, size, size, 0, 126);
+        System.out.println(d.getCategoria());
+        System.out.println(d.getValor());
 
-            g2.setColor(new Color(16, 185, 129)); // Fornecedores (25%)
-            g2.fillArc(x, y, size, size, 126, 90);
+}
 
-            g2.setColor(new Color(245, 158, 11)); // Impostos (20%)
-            g2.fillArc(x, y, size, size, 216, 72);
+        setBackground(Color.WHITE);
+        setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+            new EmptyBorder(12, 12, 12, 12)
+        ));
+    }
 
-            g2.setColor(new Color(239, 68, 68)); // Operacional (12%)
-            g2.fillArc(x, y, size, size, 288, 43);
+    // Método responsável por desenhar uma fatia
+    private void desenharFatia(
+            Graphics2D g2,
+            int x,
+            int y,
+            int size,
+            double valor,
+            double total,
+            int inicio,
+            Color cor
+    ) {
+        int angulo = (int) Math.round(valor / total * 360);
 
-            g2.setColor(new Color(168, 85, 247)); // Outros (8%)
-            g2.fillArc(x, y, size, size, 331, 29);
+        g2.setColor(cor);
+        g2.fillArc(x, y, size, size, inicio, angulo);
+    }
+
+    @Override
+protected void paintComponent(Graphics g) {
+
+    super.paintComponent(g);
+
+    Graphics2D g2 = (Graphics2D) g;
+
+    g2.setRenderingHint(
+        RenderingHints.KEY_ANTIALIASING,
+        RenderingHints.VALUE_ANTIALIAS_ON
+    );
+
+    g2.setFont(new Font("SansSerif", Font.BOLD, 13));
+    g2.setColor(Color.BLACK);
+    g2.drawString("Despesas por Categoria", 12, 22);
+
+    int size = Math.min(getWidth(), getHeight()) - 70;
+    int x = 20;
+    int y = 45;
+
+
+    // Valores das categorias
+    double folhaPagamento = 0;
+    double fornecedores = 0;
+    double impostos = 0;
+    double operacional = 0;
+    double outros = 0;
+
+
+    // Percorre todas as despesas
+    for (Despesas d : despesas) {
+
+        if (d.getCategoria().equals("Folha de Pagamento")) {
+
+            folhaPagamento += d.getValor();
+
+        } else if (d.getCategoria().equals("Fornecedores")) {
+
+            fornecedores += d.getValor();
+
+        } else if (d.getCategoria().equals("Impostos")) {
+
+            impostos += d.getValor();
+
+        } else if (d.getCategoria().equals("Operacional")) {
+
+            operacional += d.getValor();
+
+        } else {
+
+            outros += d.getValor();
         }
     }
 
+
+    // Soma total
+    double total =
+            folhaPagamento
+            + fornecedores
+            + impostos
+            + operacional
+            + outros;
+
+
+    // Evita divisão por zero
+    if (total == 0) {
+        return;
+    }
+
+
+    int inicio = 0;
+
+
+    // Folha de Pagamento
+    desenharFatia(
+        g2, x, y, size,
+        folhaPagamento,
+        total,
+        inicio,
+        new Color(37, 99, 235)
+    );
+
+    inicio += Math.round(
+        folhaPagamento / total * 360
+    );
+
+
+    // Fornecedores
+    desenharFatia(
+        g2, x, y, size,
+        fornecedores,
+        total,
+        inicio,
+        new Color(16, 185, 129)
+    );
+
+    inicio += Math.round(
+        fornecedores / total * 360
+    );
+
+
+    // Impostos
+    desenharFatia(
+        g2, x, y, size,
+        impostos,
+        total,
+        inicio,
+        new Color(245, 158, 11)
+    );
+
+    inicio += Math.round(
+        impostos / total * 360
+    );
+
+
+    // Operacional
+    desenharFatia(
+        g2, x, y, size,
+        operacional,
+        total,
+        inicio,
+        new Color(239, 68, 68)
+    );
+
+    inicio += Math.round(
+        operacional / total * 360
+    );
+
+
+    // Outros
+    desenharFatia(
+        g2, x, y, size,
+        outros,
+        total,
+        inicio,
+        new Color(168, 85, 247)
+    );
+}
+}
     public void identificarUsuario(String nome, String sessao) {
         this.lblUser.setText(nome + " - " + sessao);
 
     }
+    public void carregarDespesas(List<Despesas> despesas) {
+    this.despesas = despesas;
+    painelGraficoPizza.atualizarDespesas(despesas);
+}
+    
+public static void main(String[] args) {
+    SwingUtilities.invokeLater(() -> {
 
+        TelaDashboard tela = new TelaDashboard();
 
+        Usuario usuario = new Usuario();
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new TelaDashboard().setVisible(true);
-        });
+        // teste de usuario logado, administrador.
+        
+        usuario.setNomeUsuario("Jefferson");
+        usuario.setSessaoUsuario("Administrador");
+        
 
-    }
+        DashboardController controller =
+            new DashboardController(tela, usuario);
+
+        controller.identificarUsuario();
+        controller.carregarDespesas();
+
+        tela.setVisible(true);
+    });
+}
 }

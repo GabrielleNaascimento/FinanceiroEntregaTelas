@@ -1,18 +1,22 @@
 package controller;
 
 import javax.swing.SwingUtilities;
-
+import dao.DespesasDAO;
+import model.Despesas;
 import model.Usuario;
 import view.TelaDashboard;
+import java.util.List;
 
 public class DashboardController {
 
     private TelaDashboard tela;
     private Usuario usuariologado;
+    private DespesasDAO despesasDAO;
 
     public DashboardController(TelaDashboard tela, Usuario usuariologado) {
         this.tela = tela;
         this.usuariologado = usuariologado;
+        this.despesasDAO = new DespesasDAO();
     }
 
     public void identificarUsuario() {
@@ -23,26 +27,23 @@ public class DashboardController {
      
     }
 
-    /* 
-    public static void main(String[] args) {
-    SwingUtilities.invokeLater(() -> {
-        TelaDashboard tela = new TelaDashboard();
-        
-        // teste de usuário logado 
+   
 
-        Usuario usuario = new Usuario();
-        usuario.setNomeUsuario("Jefferson");
-        usuario.setSessaoUsuario("Administrador");
+    public List<Despesas> listarDespesas() {
+        return despesasDAO.listarDespesas();
+    }
+    public void carregarDespesas() {
+    List<Despesas> despesas = despesasDAO.listarDespesas();
 
-        DashboardController controller = new DashboardController(tela, usuario);
-        controller.identificarUsuario(); 
-
-        tela.setVisible(true);
-       
-    });
- 
-    }    */
-
-
-
+    tela.carregarDespesas(despesas);
 }
+
+    
+    }
+
+    
+           
+
+    
+
+
