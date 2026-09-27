@@ -6,8 +6,10 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class TelaContas extends JFrame {
@@ -18,22 +20,13 @@ public class TelaContas extends JFrame {
     private static final Color COR_TEXTO = new Color(35, 45, 60);
     private static final Color COR_TEXTO_SECUNDARIO = new Color(110, 120, 135);
     private static final Color COR_BORDA = new Color(226, 232, 240);
-
     private static final Color COR_AZUL = new Color(37, 99, 235);
     private static final Color COR_VERDE = new Color(16, 185, 129);
-    private static final Color COR_AMARELO = new Color(245, 158, 11);
     private static final Color COR_VERMELHO = new Color(239, 68, 68);
 
-    private JPanel painelCards;
-    private JPanel painelTabela;
-
-    private JButton btnPagar;
-    private JButton btnReceber;
-
-    private String tipoAtual = "PAGAR";
+    private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public TelaContas() {
-
         setTitle("ERP Financeiro - Módulo Financeiro");
         setSize(1280, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -45,979 +38,468 @@ public class TelaContas extends JFrame {
     }
 
     private JPanel criarSidebar() {
-
         JPanel sidebar = new JPanel();
-
         sidebar.setBackground(new Color(27, 54, 93));
         sidebar.setPreferredSize(new Dimension(220, 0));
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBorder(new EmptyBorder(20, 15, 20, 15));
 
-        JLabel lblLogo = new JLabel(
-                "<html><b>ERP Finance</b><br/>" +
-                "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"
-        );
-
+        JLabel lblLogo = new JLabel("<html><b>ERP Finance</b><br/>"
+                + "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>");
         lblLogo.setForeground(Color.WHITE);
         lblLogo.setFont(new Font("SansSerif", Font.PLAIN, 15));
         lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         sidebar.add(lblLogo);
         sidebar.add(Box.createVerticalStrut(30));
 
-        JButton btnDashboard = criarBotaoMenu("Dashboard");
-        sidebar.add(btnDashboard);
+        sidebar.add(criarBotaoMenu("Dashboard"));
         sidebar.add(Box.createVerticalStrut(5));
 
-        JButton btnContasPagar = new JButton(
-                "Contas a Pagar e Receber"
-        );
-
+        JButton btnContasPagar = new JButton("Contas a Pagar e Receber");
         btnContasPagar.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnContasPagar.setMaximumSize(
-                new Dimension(Integer.MAX_VALUE, 38)
-        );
+        btnContasPagar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         btnContasPagar.setFocusPainted(false);
-        btnContasPagar.setHorizontalAlignment(
-                SwingConstants.LEFT
-        );
+        btnContasPagar.setHorizontalAlignment(SwingConstants.LEFT);
         btnContasPagar.setBackground(Color.WHITE);
-        btnContasPagar.setForeground(
-                new Color(27, 54, 93)
-        );
-        btnContasPagar.setFont(
-                new Font("SansSerif", Font.BOLD, 12)
-        );
-
+        btnContasPagar.setForeground(new Color(27, 54, 93));
+        btnContasPagar.setFont(new Font("SansSerif", Font.BOLD, 12));
         sidebar.add(btnContasPagar);
         sidebar.add(Box.createVerticalStrut(5));
 
-        JButton btnFluxoCaixa =
-                criarBotaoMenu("Fluxo de Caixa");
-
-        sidebar.add(btnFluxoCaixa);
+        sidebar.add(criarBotaoMenu("Fluxo de Caixa"));
         sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnConciliacao =
-                criarBotaoMenu("Conciliação Bancária");
-
-        sidebar.add(btnConciliacao);
+        sidebar.add(criarBotaoMenu("Conciliação Bancária"));
         sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnRelatorios =
-                criarBotaoMenu("Relatórios");
-
-        sidebar.add(btnRelatorios);
+        sidebar.add(criarBotaoMenu("Relatórios"));
         sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnFiscal =
-                criarBotaoMenu("Fiscal");
-
-        sidebar.add(btnFiscal);
-        sidebar.add(Box.createVerticalStrut(5));
+        sidebar.add(criarBotaoMenu("Fiscal"));
 
         return sidebar;
     }
 
     private JButton criarBotaoMenu(String texto) {
-
         JButton btn = new JButton(texto);
-
         btn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btn.setMaximumSize(
-                new Dimension(Integer.MAX_VALUE, 38)
-        );
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         btn.setFocusPainted(false);
-        btn.setHorizontalAlignment(
-                SwingConstants.LEFT
-        );
+        btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setOpaque(false);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
-        btn.setForeground(
-                new Color(203, 213, 225)
-        );
-        btn.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.PLAIN,
-                        12
-                )
-        );
-
+        btn.setForeground(new Color(203, 213, 225));
+        btn.setFont(new Font("SansSerif", Font.PLAIN, 12));
         return btn;
     }
 
     private JPanel criarAreaPrincipal() {
-
-        JPanel area =
-                new JPanel(
-                        new BorderLayout()
-                );
-
+        JPanel area = new JPanel(new BorderLayout());
         area.setBackground(COR_FUNDO);
-
-        area.add(
-                criarHeader(),
-                BorderLayout.NORTH
-        );
-
-        area.add(
-                criarConteudo(),
-                BorderLayout.CENTER
-        );
-
+        area.add(criarHeader(), BorderLayout.NORTH);
+        area.add(criarConteudo(), BorderLayout.CENTER);
         return area;
     }
 
     private JPanel criarHeader() {
-
-        JPanel header =
-                new JPanel(
-                        new BorderLayout()
-                );
-
+        JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
+        header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
-        header.setBorder(
-                new EmptyBorder(
-                        15,
-                        25,
-                        15,
-                        25
-                )
-        );
-
-        JTextField txtBusca =
-                new JTextField(
-                        " Buscar transações, contas..."
-                );
-
-        txtBusca.setPreferredSize(
-                new Dimension(
-                        280,
-                        32
-                )
-        );
-
-        txtBusca.setForeground(Color.GRAY);
-
-        JLabel lblUser =
-                new JLabel(
-                        "Jefferson Riper (Administrador)"
-                );
-
-        lblUser.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.BOLD,
-                        12
-                )
-        );
-
-        header.add(
-                txtBusca,
-                BorderLayout.WEST
-        );
-
-        header.add(
-                lblUser,
-                BorderLayout.EAST
-        );
+        JLabel lblUser = new JLabel("Jefferson Riper (Administrador)");
+        lblUser.setFont(new Font("SansSerif", Font.BOLD, 12));
+        header.add(lblUser, BorderLayout.EAST);
 
         return header;
     }
 
     private JPanel criarConteudo() {
-
-        JPanel conteudo =
-                new JPanel();
-
-        conteudo.setLayout(
-                new BoxLayout(
-                        conteudo,
-                        BoxLayout.Y_AXIS
-                )
-        );
-
+        JPanel conteudo = new JPanel();
+        conteudo.setLayout(new BoxLayout(conteudo, BoxLayout.Y_AXIS));
         conteudo.setOpaque(false);
+        conteudo.setBorder(new EmptyBorder(10, 25, 25, 25));
 
-        conteudo.setBorder(
-                new EmptyBorder(
-                        10,
-                        25,
-                        25,
-                        25
-                )
-        );
-
-        JLabel titulo =
-                new JLabel(
-                        "<html><h2 style='margin:0;'>Contas a Pagar e Receber</h2>" +
-                        "<span style='color:gray;'>Gerencie suas contas, vencimentos e recebimentos</span></html>"
-                );
-
-        titulo.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
+        JLabel titulo = new JLabel("<html><h2 style='margin:0;'>Contas a Pagar e Receber</h2>"
+                + "<span style='color:gray;'>Gerencie suas contas, vencimentos e recebimentos</span></html>");
+        titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
         conteudo.add(titulo);
+        conteudo.add(Box.createVerticalStrut(15));
 
-        conteudo.add(
-                Box.createVerticalStrut(15)
-        );
+        JPanel cards = criarCards();
+        cards.setAlignmentX(Component.LEFT_ALIGNMENT);
+        conteudo.add(cards);
+        conteudo.add(Box.createVerticalStrut(15));
 
+        ArrayList<Contas> contas = Contas.getContas();
 
-        JPanel seletor = criarSeletor();
+        JPanel tabelaPagar = criarTabelaPagar(contas);
+        tabelaPagar.setAlignmentX(Component.LEFT_ALIGNMENT);
+        conteudo.add(tabelaPagar);
+        conteudo.add(Box.createVerticalStrut(15));
 
-        conteudo.add(seletor);
+        JPanel tabelaReceber = criarTabela("RECEBER", contas);
+        tabelaReceber.setAlignmentX(Component.LEFT_ALIGNMENT);
+        conteudo.add(tabelaReceber);
+        conteudo.add(Box.createVerticalStrut(15));
 
-        conteudo.add(
-                Box.createVerticalStrut(15)
-        );
+        JPanel tabelaPagas = criarTabela("PAGAS", contas);
+        tabelaPagas.setAlignmentX(Component.LEFT_ALIGNMENT);
+        conteudo.add(tabelaPagas);
+        conteudo.add(Box.createVerticalStrut(15));
 
-        painelCards = criarCards();
-
-        painelCards.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
-        conteudo.add(painelCards);
-
-        conteudo.add(
-                Box.createVerticalStrut(15)
-        );
-
-        painelTabela =
-                criarTabela(tipoAtual);
-
-        painelTabela.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
-        conteudo.add(painelTabela);
+        JPanel tabelaRecebidas = criarTabela("RECEBIDAS", contas);
+        tabelaRecebidas.setAlignmentX(Component.LEFT_ALIGNMENT);
+        conteudo.add(tabelaRecebidas);
 
         return conteudo;
     }
 
-
-    private JPanel criarSeletor() {
-
-        JPanel painel =
-                new JPanel(
-                        new GridLayout(
-                                1,
-                                2,
-                                5,
-                                0
-                        )
-                );
-
-        painel.setBackground(Color.WHITE);
-
-        painel.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                COR_BORDA
-                        ),
-                        new EmptyBorder(
-                                4,
-                                4,
-                                4,
-                                4
-                        )
-                )
-        );
-
-        painel.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
-        painel.setMaximumSize(
-                new Dimension(
-                        Integer.MAX_VALUE,
-                        45
-                )
-        );
-
-        btnPagar =
-                new JButton(
-                        "Contas a Pagar"
-                );
-
-        btnReceber =
-                new JButton(
-                        "Contas a Receber"
-                );
-
-        configurarBotaoAba(btnPagar);
-        configurarBotaoAba(btnReceber);
-
-        btnPagar.addActionListener(e ->
-                trocarTipo("PAGAR")
-        );
-
-        btnReceber.addActionListener(e ->
-                trocarTipo("RECEBER")
-        );
-
-        painel.add(btnPagar);
-        painel.add(btnReceber);
-
-        atualizarBotoes();
-
-        return painel;
-    }
-
-    private void configurarBotaoAba(
-            JButton botao
-    ) {
-
-        botao.setFocusPainted(false);
-        botao.setBorderPainted(false);
-
-        botao.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.BOLD,
-                        12
-                )
-        );
-
-        botao.setCursor(
-                new Cursor(
-                        Cursor.HAND_CURSOR
-                )
-        );
-    }
-
-    private void trocarTipo(
-            String novoTipo
-    ) {
-
-        tipoAtual = novoTipo;
-
-        painelCards.removeAll();
-
-        JPanel novosCards =
-                criarCards();
-
-        Component[] componentes =
-                novosCards.getComponents();
-
-        for (Component componente : componentes) {
-            painelCards.add(componente);
-        }
-
-        painelTabela.removeAll();
-
-        painelTabela.setLayout(
-                new BorderLayout()
-        );
-
-        painelTabela.add(
-                criarTabela(tipoAtual),
-                BorderLayout.CENTER
-        );
-
-        atualizarBotoes();
-
-        painelCards.revalidate();
-        painelCards.repaint();
-
-        painelTabela.revalidate();
-        painelTabela.repaint();
-    }
-
-    private void atualizarBotoes() {
-
-        if (tipoAtual.equals("PAGAR")) {
-
-            btnPagar.setBackground(
-                    COR_AZUL
-            );
-
-            btnPagar.setForeground(
-                    Color.WHITE
-            );
-
-            btnReceber.setBackground(
-                    Color.WHITE
-            );
-
-            btnReceber.setForeground(
-                    COR_TEXTO
-            );
-
-        } else {
-
-            btnReceber.setBackground(
-                    COR_AZUL
-            );
-
-            btnReceber.setForeground(
-                    Color.WHITE
-            );
-
-            btnPagar.setBackground(
-                    Color.WHITE
-            );
-
-            btnPagar.setForeground(
-                    COR_TEXTO
-            );
-        }
-    }
-
     private JPanel criarCards() {
+        ArrayList<Contas> contas = Contas.getContas();
 
-        JPanel painel =
-                new JPanel(
-                        new GridLayout(
-                                1,
-                                3,
-                                15,
-                                0
-                        )
-                );
+        double saldoAtual = 50000.00;
+        double totalPagar = 0;
+        double totalReceber = 0;
 
-        painel.setOpaque(false);
-
-        painel.setMaximumSize(
-                new Dimension(
-                        Integer.MAX_VALUE,
-                        95
-                )
-        );
-
-        ArrayList<Contas> dados =
-                criarDados(tipoAtual);
-
-        double total = 0;
-        double pendente = 0;
-        double atrasado = 0;
-
-        for (Contas conta : dados) {
-
-            total += conta.getValor();
-
-            if (conta.getStatus().equals("Pendente")) {
-                pendente += conta.getValor();
+        for (Contas conta : contas) {
+            if (conta.getTipo().equals("PAGAR")) {
+                if (conta.getStatus().equals("Paga")) {
+                    saldoAtual -= conta.getValor();
+                } else {
+                    totalPagar += conta.getValor();
+                }
             }
 
-            if (conta.getStatus().equals("Vencida")
-                    || conta.getStatus().equals("Atrasada")) {
-
-                atrasado += conta.getValor();
+            if (conta.getTipo().equals("RECEBER")) {
+                if (conta.getStatus().equals("Recebida")) {
+                    saldoAtual += conta.getValor();
+                } else {
+                    totalReceber += conta.getValor();
+                }
             }
         }
 
-        painel.add(
-                criarCard(
-                        "Total",
-                        formatarValor(total),
-                        COR_AZUL
-                )
-        );
+        JPanel painel = new JPanel(new GridLayout(1, 3, 15, 0));
+        painel.setOpaque(false);
+        painel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
 
-        painel.add(
-                criarCard(
-                        "Pendente",
-                        formatarValor(pendente),
-                        COR_AMARELO
-                )
-        );
-
-        painel.add(
-                criarCard(
-                        "Em atraso",
-                        formatarValor(atrasado),
-                        COR_VERMELHO
-                )
-        );
+        painel.add(cardMetrica("Saldo atual", formatarValor(saldoAtual), "+4.2% vs. mês anterior", COR_AZUL));
+        painel.add(cardMetrica("Contas a pagar", formatarValor(totalPagar), "-2.1% vs. mês anterior", COR_VERMELHO));
+        painel.add(cardMetrica("Contas a receber", formatarValor(totalReceber), "+8.5% vs. mês anterior", COR_VERDE));
 
         return painel;
     }
 
-    private JPanel criarCard(
-            String titulo,
-            String valor,
-            Color cor
-    ) {
-
-        JPanel card =
-                new JPanel(
-                        new GridLayout(
-                                2,
-                                1
-                        )
-                );
-
+    private JPanel cardMetrica(String titulo, String valor, String variacao, Color corVariacao) {
+        JPanel card = new JPanel(new GridLayout(3, 1));
         card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COR_BORDA, 1),
+                new EmptyBorder(10, 12, 10, 12)));
 
-        card.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                COR_BORDA
-                        ),
-                        new EmptyBorder(
-                                10,
-                                12,
-                                10,
-                                12
-                        )
-                )
-        );
+        JLabel t = new JLabel(titulo);
+        t.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        t.setForeground(Color.GRAY);
 
-        JLabel lblTitulo =
-                new JLabel(titulo);
+        JLabel v = new JLabel(valor);
+        v.setFont(new Font("SansSerif", Font.BOLD, 17));
 
-        lblTitulo.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.PLAIN,
-                        12
-                )
-        );
+        JLabel var = new JLabel(variacao);
+        var.setFont(new Font("SansSerif", Font.BOLD, 11));
+        var.setForeground(corVariacao);
 
-        lblTitulo.setForeground(
-                COR_TEXTO_SECUNDARIO
-        );
-
-        JLabel lblValor =
-                new JLabel(valor);
-
-        lblValor.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.BOLD,
-                        17
-                )
-        );
-
-        lblValor.setForeground(cor);
-
-        card.add(lblTitulo);
-        card.add(lblValor);
+        card.add(t);
+        card.add(v);
+        card.add(var);
 
         return card;
     }
 
-    private JPanel criarTabela(
-            String tipo
-    ) {
+    private JPanel criarTabelaPagar(ArrayList<Contas> dados) {
+        JPanel painel = criarPainelTabela("Contas a Pagar");
 
-        JPanel painel =
-                new JPanel(
-                        new BorderLayout()
-                );
-
-        painel.setBackground(Color.WHITE);
-
-        painel.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                COR_BORDA
-                        ),
-                        new EmptyBorder(
-                                12,
-                                12,
-                                12,
-                                12
-                        )
-                )
-        );
-
-        String entidade =
-                tipo.equals("PAGAR")
-                        ? "Fornecedor"
-                        : "Cliente";
-
-        JLabel titulo =
-                new JLabel(
-                        tipo.equals("PAGAR")
-                                ? "Contas a Pagar"
-                                : "Contas a Receber"
-                );
-
-        titulo.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.BOLD,
-                        13
-                )
-        );
-
-        titulo.setForeground(COR_TEXTO);
-
-        titulo.setBorder(
-                new EmptyBorder(
-                        0,
-                        0,
-                        8,
-                        0
-                )
-        );
-
-        painel.add(
-                titulo,
-                BorderLayout.NORTH
-        );
-
-        String[] colunas = {
-                entidade,
-                "Descrição",
-                "Vencimento",
-                "Valor (R$)",
-                "Status"
-        };
-
-        DefaultTableModel modelo =
-                new DefaultTableModel(
-                        colunas,
-                        0
-                ) {
-
-                    @Override
-                    public boolean isCellEditable(
-                            int row,
-                            int column
-                    ) {
-                        return false;
-                    }
-                };
-
-        ArrayList<Contas> dados =
-                criarDados(tipo);
+        String[] colunas = {"ID", "Fornecedor", "Descrição", "Vencimento", "Valor (R$)", "Status", "Ação"};
+        DefaultTableModel modelo = criarModelo(colunas);
 
         for (Contas conta : dados) {
+            if (!conta.getTipo().equals("PAGAR") || conta.getStatus().equals("Paga")) {
+                continue;
+            }
 
-            modelo.addRow(
-                    new Object[]{
-                            conta.getEntidade(),
-                            conta.getDescricao(),
-                            conta.getVencimento(),
-                            formatarValor(
-                                    conta.getValor()
-                            ),
-                            conta.getStatus()
-                    }
-            );
+            modelo.addRow(new Object[]{
+                    conta.getId(),
+                    conta.getEntidade(),
+                    conta.getDescricao(),
+                    formatarData(conta.getDataVencimento()),
+                    formatarValor(conta.getValor()),
+                    conta.getStatus(),
+                    "Pagar"
+            });
         }
 
-        JTable tabela =
-                new JTable(modelo);
-
+        JTable tabela = new JTable(modelo);
         configurarTabela(tabela);
 
-        JScrollPane scroll =
-                new JScrollPane(tabela);
+        tabela.getColumnModel().getColumn(6).setCellRenderer(new BotaoRenderer("Pagar"));
+        tabela.getColumnModel().getColumn(6).setCellEditor(new BotaoEditor(new JCheckBox(), "Pagar"));
+        tabela.setRowHeight(36);
 
-        scroll.setBorder(null);
-
-        painel.add(
-                scroll,
-                BorderLayout.CENTER
-        );
+        JScrollPane scroll = new JScrollPane(tabela);
+        configurarScroll(scroll);
+        painel.add(scroll, BorderLayout.CENTER);
 
         return painel;
     }
 
-    private void configurarTabela(
-            JTable tabela
-    ) {
+    private JPanel criarTabela(String tipo, ArrayList<Contas> dados) {
+        String tituloTabela;
+        String entidade;
 
-        tabela.setRowHeight(32);
+        if (tipo.equals("PAGAS")) {
+            tituloTabela = "Contas Pagas";
+            entidade = "Fornecedor";
+        } else if (tipo.equals("RECEBIDAS")) {
+            tituloTabela = "Contas Recebidas";
+            entidade = "Cliente";
+        } else {
+            tituloTabela = "Contas a Receber";
+            entidade = "Cliente";
+        }
 
-        tabela.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.PLAIN,
-                        11
-                )
-        );
+        JPanel painel = criarPainelTabela(tituloTabela);
 
-        tabela.setForeground(
-                COR_TEXTO
-        );
+        String[] colunas = tipo.equals("RECEBER")
+                ? new String[]{"ID", entidade, "Descrição", "Vencimento", "Valor (R$)", "Status", "Ação"}
+                : new String[]{"ID", entidade, "Descrição", "Vencimento", "Valor (R$)", "Status"};
 
-        tabela.setBackground(
-                Color.WHITE
-        );
+        DefaultTableModel modelo = criarModelo(colunas);
 
-        tabela.setShowGrid(false);
+        for (Contas conta : dados) {
+            boolean adicionar;
 
-        tabela.setRowSelectionAllowed(false);
+            if (tipo.equals("PAGAS")) {
+                adicionar = conta.getTipo().equals("PAGAR") && conta.getStatus().equals("Paga");
+            } else if (tipo.equals("RECEBIDAS")) {
+                adicionar = conta.getTipo().equals("RECEBER") && conta.getStatus().equals("Recebida");
+            } else {
+                adicionar = conta.getTipo().equals("RECEBER") && !conta.getStatus().equals("Recebida");
+            }
 
-        tabela.setColumnSelectionAllowed(false);
+            if (!adicionar) {
+                continue;
+            }
 
-        tabela.getTableHeader()
-                .setReorderingAllowed(false);
+            if (tipo.equals("RECEBER")) {
+                modelo.addRow(new Object[]{
+                        conta.getId(),
+                        conta.getEntidade(),
+                        conta.getDescricao(),
+                        formatarData(conta.getDataVencimento()),
+                        formatarValor(conta.getValor()),
+                        conta.getStatus(),
+                        "Receber"
+                });
+            } else {
+                modelo.addRow(new Object[]{
+                        conta.getId(),
+                        conta.getEntidade(),
+                        conta.getDescricao(),
+                        formatarData(conta.getDataVencimento()),
+                        formatarValor(conta.getValor()),
+                        conta.getStatus()
+                });
+            }
+        }
 
-        tabela.getTableHeader()
-                .setResizingAllowed(false);
+        JTable tabela = new JTable(modelo);
+        configurarTabela(tabela);
 
-        tabela.getTableHeader()
-                .setFont(
-                        new Font(
-                                "SansSerif",
-                                Font.BOLD,
-                                10
-                        )
-                );
+        if (tipo.equals("RECEBER")) {
+            tabela.getColumnModel().getColumn(6).setCellRenderer(new BotaoRenderer("Receber"));
+            tabela.getColumnModel().getColumn(6).setCellEditor(new BotaoEditor(new JCheckBox(), "Receber"));
+        }
 
-        tabela.getTableHeader()
-                .setForeground(
-                        COR_TEXTO_SECUNDARIO
-                );
+        JScrollPane scroll = new JScrollPane(tabela);
+        configurarScroll(scroll);
+        painel.add(scroll, BorderLayout.CENTER);
 
-        tabela.getTableHeader()
-                .setBackground(
-                        new Color(
-                                248,
-                                249,
-                                251
-                        )
-                );
-
-        tabela.getTableHeader()
-                .setPreferredSize(
-                        new Dimension(
-                                0,
-                                32
-                        )
-                );
-
-        DefaultTableCellRenderer valorRenderer =
-                new DefaultTableCellRenderer();
-
-        valorRenderer.setHorizontalAlignment(
-                SwingConstants.RIGHT
-        );
-
-        tabela.getColumnModel()
-                .getColumn(3)
-                .setCellRenderer(
-                        valorRenderer
-                );
-
-        tabela.getColumnModel()
-                .getColumn(4)
-                .setCellRenderer(
-                        new StatusRenderer()
-                );
+        return painel;
     }
-    private class StatusRenderer
-            extends DefaultTableCellRenderer {
+
+    private JPanel criarPainelTabela(String titulo) {
+        JPanel painel = new JPanel(new BorderLayout());
+        painel.setBackground(Color.WHITE);
+        painel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COR_BORDA),
+                new EmptyBorder(12, 12, 12, 12)));
+
+        JLabel labelTitulo = new JLabel(titulo);
+        labelTitulo.setFont(new Font("SansSerif", Font.BOLD, 13));
+        labelTitulo.setForeground(COR_TEXTO);
+        labelTitulo.setBorder(new EmptyBorder(0, 0, 8, 0));
+
+        painel.add(labelTitulo, BorderLayout.NORTH);
+
+        return painel;
+    }
+
+    private DefaultTableModel criarModelo(String[] colunas) {
+        return new DefaultTableModel(colunas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return colunas[colunas.length - 1].equals("Ação") && column == colunas.length - 1;
+            }
+        };
+    }
+
+    private void configurarScroll(JScrollPane scroll) {
+        scroll.setBorder(null);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.getViewport().setBackground(Color.WHITE);
+    }
+
+    private void configurarTabela(JTable tabela) {
+        tabela.setRowHeight(32);
+        tabela.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        tabela.setForeground(COR_TEXTO);
+        tabela.setBackground(Color.WHITE);
+        tabela.setShowGrid(false);
+        tabela.setRowSelectionAllowed(false);
+        tabela.setColumnSelectionAllowed(false);
+        tabela.getTableHeader().setReorderingAllowed(false);
+        tabela.getTableHeader().setResizingAllowed(false);
+        tabela.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 10));
+        tabela.getTableHeader().setForeground(COR_TEXTO_SECUNDARIO);
+        tabela.getTableHeader().setBackground(new Color(248, 249, 251));
+        tabela.getTableHeader().setPreferredSize(new Dimension(0, 32));
+
+        DefaultTableCellRenderer valorRenderer = new DefaultTableCellRenderer();
+        valorRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
+        tabela.getColumnModel().getColumn(4).setCellRenderer(valorRenderer);
+        tabela.getColumnModel().getColumn(5).setCellRenderer(new StatusRenderer());
+    }
+
+    private class StatusRenderer extends DefaultTableCellRenderer {
 
         @Override
-        public Component getTableCellRendererComponent(
-                JTable table,
-                Object value,
-                boolean isSelected,
-                boolean hasFocus,
-                int row,
-                int column
-        ) {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column) {
+            JLabel label = (JLabel) super.getTableCellRendererComponent(
+                    table, value, isSelected, hasFocus, row, column);
 
-            JLabel label =
-                    (JLabel) super
-                            .getTableCellRendererComponent(
-                                    table,
-                                    value,
-                                    isSelected,
-                                    hasFocus,
-                                    row,
-                                    column
-                            );
-
-            String status =
-                    value.toString();
-
-            label.setHorizontalAlignment(
-                    SwingConstants.CENTER
-            );
-
+            String status = value.toString();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setOpaque(true);
 
-            if (status.equals("Paga")
-                    || status.equals("Recebida")) {
-
-                label.setForeground(
-                        new Color(
-                                6,
-                                95,
-                                70
-                        )
-                );
-
-                label.setBackground(
-                        new Color(
-                                209,
-                                250,
-                                229
-                        )
-                );
-
+            if (status.equals("Paga") || status.equals("Recebida")) {
+                label.setForeground(new Color(6, 95, 70));
+                label.setBackground(new Color(209, 250, 229));
             } else if (status.equals("Pendente")) {
-
-                label.setForeground(
-                        new Color(
-                                146,
-                                64,
-                                14
-                        )
-                );
-
-                label.setBackground(
-                        new Color(
-                                254,
-                                243,
-                                199
-                        )
-                );
-
+                label.setForeground(new Color(146, 64, 14));
+                label.setBackground(new Color(254, 243, 199));
             } else {
-
-                label.setForeground(
-                        new Color(
-                                153,
-                                27,
-                                27
-                        )
-                );
-
-                label.setBackground(
-                        new Color(
-                                254,
-                                226,
-                                226
-                        )
-                );
+                label.setForeground(new Color(153, 27, 27));
+                label.setBackground(new Color(254, 226, 226));
             }
 
             return label;
         }
     }
-    private ArrayList<Contas> criarDados(
-            String tipo
-    ) {
 
-        ArrayList<Contas> dados =
-                new ArrayList<>();
+    private class BotaoRenderer extends JButton implements javax.swing.table.TableCellRenderer {
 
-        if (tipo.equals("PAGAR")) {
-
-            dados.add(
-                    new Contas(
-                            "Amazon",
-                            "Locação Servidores",
-                            "15/08/2026",
-                            4500.00,
-                            "PAGAR",
-                            "Vencida"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Microsoft",
-                            "Licenças Office",
-                            "20/09/2026",
-                            3200.00,
-                            "PAGAR",
-                            "Pendente"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Xavier",
-                            "Assessoria Jurídica",
-                            "05/08/2026",
-                            8500.00,
-                            "PAGAR",
-                            "Paga"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Imobiliária",
-                            "Aluguel Sala",
-                            "10/10/2026",
-                            12000.00,
-                            "PAGAR",
-                            "Pendente"
-                    )
-            );
-
-        } else {
-
-            dados.add(
-                    new Contas(
-                            "Tech Solutions",
-                            "Impl. ERP",
-                            "01/08/2026",
-                            15000.00,
-                            "RECEBER",
-                            "Recebida"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Metalúrgica",
-                            "Consultoria",
-                            "12/08/2026",
-                            8540.00,
-                            "RECEBER",
-                            "Atrasada"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Hospital",
-                            "Manut. Hardware",
-                            "25/08/2026",
-                            3800.00,
-                            "RECEBER",
-                            "Pendente"
-                    )
-            );
-
-            dados.add(
-                    new Contas(
-                            "Banco Nacional",
-                            "Suporte TI",
-                            "18/08/2026",
-                            4500.00,
-                            "RECEBER",
-                            "Recebida"
-                    )
-            );
+        public BotaoRenderer(String texto) {
+            setFocusPainted(false);
+            setFont(new Font("SansSerif", Font.BOLD, 10));
+            setForeground(COR_AZUL);
+            setBackground(Color.WHITE);
+            setBorder(BorderFactory.createLineBorder(COR_BORDA));
+            setText(texto);
         }
 
-        return dados;
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column) {
+            setText(value.toString());
+            return this;
+        }
     }
 
- private String formatarValor(
-            double valor
-    ) {
+    private class BotaoEditor extends DefaultCellEditor {
 
-        return String.format(
-                "R$ %.2f",
-                valor
-        );
+        private final JButton button;
+        private JTable tabela;
+        private final String tipoAcao;
+
+        public BotaoEditor(JCheckBox checkBox, String tipoAcao) {
+            super(checkBox);
+            this.tipoAcao = tipoAcao;
+
+            button = new JButton(tipoAcao);
+            button.setFocusPainted(false);
+            button.setFont(new Font("SansSerif", Font.BOLD, 10));
+            button.setForeground(COR_AZUL);
+            button.setBackground(Color.WHITE);
+            button.setBorder(BorderFactory.createLineBorder(COR_BORDA));
+            button.addActionListener(this::realizarAcao);
+        }
+
+        private void realizarAcao(ActionEvent e) {
+            int row = tabela.getEditingRow();
+            if (row < 0) {
+                return;
+            }
+
+            int id = (int) tabela.getValueAt(row, 0);
+            ArrayList<Contas> contas = Contas.getContas();
+
+            for (Contas conta : contas) {
+                if (conta.getId() == id) {
+                    if (tipoAcao.equals("Pagar")) {
+                        conta.setStatus("Paga");
+                    }
+                    if (tipoAcao.equals("Receber")) {
+                        conta.setStatus("Recebida");
+                    }
+                    break;
+                }
+            }
+
+            fireEditingStopped();
+            atualizarTela();
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+                                                     int row, int column) {
+            this.tabela = table;
+            button.setText(value.toString());
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return tipoAcao;
+        }
     }
-    public static void main(
-            String[] args
-    ) {
 
-        SwingUtilities.invokeLater(() ->
-                new TelaContas()
-                        .setVisible(true)
-        );
+    private void atualizarTela() {
+        getContentPane().removeAll();
+        add(criarSidebar(), BorderLayout.WEST);
+        add(criarAreaPrincipal(), BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    private String formatarValor(double valor) {
+        return String.format("R$ %.2f", valor);
+    }
+
+    private String formatarData(LocalDate data) {
+        return data.format(FORMATO_DATA);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new TelaContas().setVisible(true));
     }
 }
