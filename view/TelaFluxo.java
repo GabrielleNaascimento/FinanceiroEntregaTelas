@@ -175,18 +175,6 @@ public class TelaFluxo extends JFrame {
         );
 
 
-        JTextField txtBusca =
-                new JTextField(
-                        " Buscar transações, contas..."
-                );
-
-        txtBusca.setPreferredSize(
-                new Dimension(280, 32)
-        );
-
-        txtBusca.setForeground(Color.GRAY);
-
-
         JLabel lblUser =
                 new JLabel(
                         "Jefferson Riper (Administrador)"
@@ -200,11 +188,6 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-
-        header.add(
-                txtBusca,
-                BorderLayout.WEST
-        );
 
         header.add(
                 lblUser,
@@ -619,6 +602,21 @@ public class TelaFluxo extends JFrame {
         JTable tabela =
                 new JTable(modelo);
 
+        tabela.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+        for (int i = 0; i < tabela.getColumnModel().getColumnCount(); i++) {
+            tabela.getColumnModel().getColumn(i).setResizable(false);
+        }
+
+        tabela.getTableHeader().setReorderingAllowed(false);
+
+        tabela.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tabela.getColumnModel().getColumn(1).setPreferredWidth(240);
+        tabela.getColumnModel().getColumn(2).setPreferredWidth(120);
+        tabela.getColumnModel().getColumn(3).setPreferredWidth(200);
+        tabela.getColumnModel().getColumn(4).setPreferredWidth(150);
+        tabela.getColumnModel().getColumn(5).setPreferredWidth(170);
+
 
         tabela.setRowHeight(30);
 
@@ -642,13 +640,16 @@ public class TelaFluxo extends JFrame {
         );
 
 
-        tabela.setShowGrid(false);
-
-
+        tabela.setShowGrid(true);
         tabela.setShowHorizontalLines(true);
+        tabela.setShowVerticalLines(true);
 
         tabela.setGridColor(
                 COR_BORDA
+        );
+
+        tabela.setIntercellSpacing(
+                new Dimension(1, 1)
         );
 
 
@@ -662,20 +663,13 @@ public class TelaFluxo extends JFrame {
                 );
 
 
-        tabela.getTableHeader()
-                .setForeground(
-                        COR_CINZA
-                );
+     
+        tabela.getTableHeader().setForeground(Color.GRAY);
 
+        tabela.getTableHeader().setBackground(
+                new Color(248, 249, 250)
+        );
 
-        tabela.getTableHeader()
-                .setBackground(
-                        new Color(
-                                248,
-                                249,
-                                251
-                        )
-                );
 
 
         tabela.getTableHeader()
@@ -686,6 +680,12 @@ public class TelaFluxo extends JFrame {
                         )
                 );
 
+        tabela.getTableHeader()
+                .setOpaque(true);
+
+        tabela.setSelectionBackground(Color.WHITE);
+        tabela.setSelectionForeground(COR_TEXTO);
+
         DefaultTableCellRenderer centro =
                 new DefaultTableCellRenderer();
 
@@ -693,14 +693,24 @@ public class TelaFluxo extends JFrame {
                 SwingConstants.CENTER
         );
 
+        centro.setBorder(
+                BorderFactory.createMatteBorder(
+                        0,
+                        1,
+                        1,
+                        0,
+                        COR_BORDA
+                )
+        );
 
-        tabela.getColumnModel()
-                .getColumn(0)
-                .setCellRenderer(centro);
+        tabela.getTableHeader()
+                .setDefaultRenderer(centro);
 
-        tabela.getColumnModel()
-                .getColumn(2)
-                .setCellRenderer(centro);
+        for (int i = 0; i < tabela.getColumnModel().getColumnCount(); i++) {
+            tabela.getColumnModel()
+                    .getColumn(i)
+                    .setCellRenderer(centro);
+        }
 
         tabela.getColumnModel()
                 .getColumn(4)
@@ -731,9 +741,18 @@ public class TelaFluxo extends JFrame {
 
 
                                 label.setHorizontalAlignment(
-                                        SwingConstants.RIGHT
+                                        SwingConstants.CENTER
                                 );
 
+                                label.setBorder(
+                                        BorderFactory.createMatteBorder(
+                                                0,
+                                                1,
+                                                1,
+                                                0,
+                                                COR_BORDA
+                                        )
+                                );
 
                                 String texto =
                                         value.toString();
