@@ -4,16 +4,18 @@ public class Conciliacao {
 
     private String data;
     private String descricaoExtrato;
-    private String valorExtrato;
-    private String valorSistema;
+    private double valorExtrato;
+    private String descricaoSistema;
+    private double valorSistema;
     private double diferenca;
     private String status;
 
     public Conciliacao(
             String data,
             String descricaoExtrato,
-            String valorExtrato,
-            String valorSistema,
+            double valorExtrato,
+            String descricaoSistema,
+            double valorSistema,
             double diferenca,
             String status
     ) {
@@ -21,6 +23,7 @@ public class Conciliacao {
         this.data = data;
         this.descricaoExtrato = descricaoExtrato;
         this.valorExtrato = valorExtrato;
+        this.descricaoSistema = descricaoSistema;
         this.valorSistema = valorSistema;
         this.diferenca = diferenca;
         this.status = status;
@@ -34,11 +37,15 @@ public class Conciliacao {
         return descricaoExtrato;
     }
 
-    public String getValorExtrato() {
+    public double getValorExtrato() {
         return valorExtrato;
     }
 
-    public String getValorSistema() {
+    public String getDescricaoSistema() {
+        return descricaoSistema;
+    }
+
+    public double getValorSistema() {
         return valorSistema;
     }
 

@@ -1,14 +1,13 @@
 package view;
 
-import model.Fluxo;
-
+import java.awt.*;
+import java.awt.geom.Path2D;
+import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.awt.geom.Path2D;
-import java.util.ArrayList;
+import model.Fluxo;
 
 public class TelaFluxo extends JFrame {
 
