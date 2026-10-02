@@ -1,2 +1,5 @@
 .vscode/
 oracleJdk-27/
+target/
+out/
+.idea/
