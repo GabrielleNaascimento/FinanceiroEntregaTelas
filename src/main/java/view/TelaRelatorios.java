@@ -30,23 +30,15 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-public class TelaRelatorios extends JFrame {
+public class TelaRelatorios extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
     private Relatorio relatorio;
 
     public TelaRelatorios() {
-
         relatorio = new Relatorio();
-
-        setTitle("ERP Financeiro - Módulo Financeiro");
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-
-        add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
     }
 
@@ -172,7 +164,7 @@ public class TelaRelatorios extends JFrame {
         txtBusca.setForeground(Color.GRAY);
 
         JLabel lblUser =
-                new JLabel("Jefferson Riper (Administrador)");
+                new JLabel("Jefferson - Administrador");
 
         lblUser.setFont(
                 new Font("SansSerif", Font.BOLD, 12)
@@ -899,13 +891,5 @@ public class TelaRelatorios extends JFrame {
             }
         }
     }
-
-    public static void main(String[] args) {
-
-        SwingUtilities.invokeLater(() -> {
-
-            new TelaRelatorios()
-                    .setVisible(true);
-        });
-    }
+    
 }
