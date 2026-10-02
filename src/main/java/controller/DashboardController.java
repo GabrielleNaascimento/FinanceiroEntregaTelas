@@ -1,6 +1,5 @@
 package controller;
 
-import javax.swing.SwingUtilities;
 import dao.DespesasDAO;
 import model.Despesas;
 import model.Usuario;
