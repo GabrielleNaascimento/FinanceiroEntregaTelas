@@ -1,8 +1,5 @@
 package view;
 
-import model.Relatorio;
-import model.Relatorio.ResumoMensal;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -12,7 +9,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,12 +19,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import model.Relatorio;
+import model.Relatorio.ResumoMensal;
 
 public class TelaRelatorios extends JFrame {
 
@@ -153,7 +150,7 @@ public class TelaRelatorios extends JFrame {
         return area;
     }
 
-    private JPanel criarHeader() {
+     private JPanel criarHeader() {
 
         JPanel header = new JPanel(new BorderLayout());
 
@@ -162,14 +159,6 @@ public class TelaRelatorios extends JFrame {
                 new EmptyBorder(15, 25, 15, 25)
         );
 
-        JTextField txtBusca =
-                new JTextField(" Buscar transações, contas...");
-
-        txtBusca.setPreferredSize(
-                new Dimension(280, 32)
-        );
-
-        txtBusca.setForeground(Color.GRAY);
 
         JLabel lblUser =
                 new JLabel("Jefferson Riper (Administrador)");
@@ -177,8 +166,6 @@ public class TelaRelatorios extends JFrame {
         lblUser.setFont(
                 new Font("SansSerif", Font.BOLD, 12)
         );
-
-        header.add(txtBusca, BorderLayout.WEST);
         header.add(lblUser, BorderLayout.EAST);
 
         return header;
@@ -250,7 +237,8 @@ public class TelaRelatorios extends JFrame {
 
         JComboBox<String> periodo =
                 new JComboBox<>();
-
+        periodo.setBackground(Color.WHITE);
+        
         periodo.addItem("Último Semestre");
         periodo.addItem("Último Ano");
         periodo.addItem("Últimos 30 dias");
@@ -266,6 +254,7 @@ public class TelaRelatorios extends JFrame {
 
         return painel;
     }
+
 
     private JPanel criarCards() {
 
