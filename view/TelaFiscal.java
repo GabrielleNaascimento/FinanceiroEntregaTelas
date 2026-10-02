@@ -122,14 +122,9 @@ public class TelaFiscal extends JFrame {
         header.setOpaque(false); //deixa transparente
         header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
-        JTextField txtBusca = new JTextField(" Buscar transações, contas...");
-        txtBusca.setPreferredSize(new Dimension(280, 32));
-        txtBusca.setForeground(Color.GRAY);
-
         JLabel lblUser = new JLabel("Jefferson Riper (Administrador)");
         lblUser.setFont(new Font("SansSerif", Font.BOLD, 12));
 
-        header.add(txtBusca, BorderLayout.WEST);
         header.add(lblUser, BorderLayout.EAST);
         area.add(header, BorderLayout.NORTH);
 
@@ -165,14 +160,14 @@ public class TelaFiscal extends JFrame {
         painel.setAlignmentX(Component.LEFT_ALIGNMENT);
         painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
 
-        painel.add(cardMetrica("Total Impostos", "R$ 42.680,00", "+8.2% vs. mês anterior", new Color(34, 99, 212)));
-        painel.add(cardMetrica("Pagos", "R$ 28.400,00", "+12.4% vs. mês anterior", new Color(111, 199, 101)));
-        painel.add(cardMetrica("Pendentes", "R$ 14.280,00", "-4.5% vs. mês anterior", new Color(224, 78, 34)));
+        painel.add(cardMetrica("Total Impostos", "R$ 42.680,00", new Color(34, 99, 212)));
+        painel.add(cardMetrica("Pagos", "R$ 28.400,00", new Color(111, 199, 101)));
+        painel.add(cardMetrica("Pendentes", "R$ 14.280,00", new Color(224, 78, 34)));
 
         return painel;
     }
     // metoxo auxiliar que vai criar os cards superiores
-    private JPanel cardMetrica(String titulo, String valor, String variacao, Color corVariacao) {
+    private JPanel cardMetrica(String titulo, String valor, Color corVariacao) {
         JPanel card = new JPanel(new GridLayout(3, 1));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -187,13 +182,8 @@ public class TelaFiscal extends JFrame {
         JLabel v = new JLabel(valor);
         v.setFont(new Font("SansSerif", Font.BOLD, 17));
 
-        JLabel var = new JLabel(variacao);
-        var.setFont(new Font("SansSerif", Font.BOLD, 11));
-        var.setForeground(corVariacao);
-
         card.add(t);
         card.add(v);
-        card.add(var);
         return card;
     }
 
