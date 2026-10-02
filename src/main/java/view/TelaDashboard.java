@@ -110,14 +110,26 @@ public class TelaDashboard extends JFrame {
 
         //os demais botoes serao criados por metodo auxiliar
 
-        JButton btnContasPagar = criarBotaoMenu("Contas a Pagar e Receber");
+        JButton btnContasPagar = criarBotaoMenu("Contas a Pagar");
 
         btnContasPagar.addActionListener(e -> {
-            mostrarTela(new TelaContas());
+            mostrarTela(new TelaContasPagar());
             selecionarBotao(btnContasPagar);
         });
 
+
         sidebar.add(btnContasPagar);
+        sidebar.add(Box.createVerticalStrut(5));
+
+        JButton btnContasReceber = criarBotaoMenu("Contas a Receber");
+
+        btnContasReceber.addActionListener(e -> {
+            mostrarTela(new TelaContasReceber());
+            selecionarBotao(btnContasReceber);
+        });
+
+
+        sidebar.add(btnContasReceber);
         sidebar.add(Box.createVerticalStrut(5));
 
         JButton btnFluxoCaixa = criarBotaoMenu("Fluxo de Caixa");

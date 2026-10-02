@@ -2,8 +2,12 @@ package model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class Contas {
+
+    public static final String PAGAR = "PAGAR";
+    public static final String RECEBER = "RECEBER";
 
     private int id;
     private String entidade;
@@ -64,48 +68,113 @@ public class Contas {
         this.status = status;
     }
 
+    private static String statusConcluido(String tipo) {
+        return tipo.equals(PAGAR) ? "Paga" : "Recebida";
+    }
+
+
+    // lista as contas de um tipo, separando concluídas Paga/Recebida das em aberto
+
+
+    public static ArrayList<Contas> listar(String tipo, boolean concluidas) {
+        ArrayList<Contas> resultado = new ArrayList<>();
+        String concluido = statusConcluido(tipo);
+
+        for (Contas c : getContas()) {
+            if (c.getTipo().equals(tipo) && c.getStatus().equals(concluido) == concluidas) {
+                resultado.add(c);
+            }
+        }
+
+        resultado.sort(Comparator.comparing(Contas::getDataVencimento));
+        return resultado;
+    }
+
+    public static double somar(String tipo, boolean concluidas) {
+        double total = 0;
+        for (Contas c : listar(tipo, concluidas)) {
+            total += c.getValor();
+        }
+        return total;
+    }
+
+    /** Saldo atual = tudo que já foi recebido menos tudo que já foi pago. */
+    public static double getSaldoAtual() {
+        return getTotalRecebido() - getTotalPago();
+    }
+
+    public static double getTotalPagar() {
+        return somar(PAGAR, false);
+    }
+
+    public static double getTotalPago() {
+        return somar(PAGAR, true);
+    }
+
+    public static double getTotalReceber() {
+        return somar(RECEBER, false);
+    }
+
+    public static double getTotalRecebido() {
+        return somar(RECEBER, true);
+    }
+
+    /** Retorna false se for uma conta a pagar maior que o saldo atual (pra nao ficar negativo). */
+    public static boolean marcarComoConcluida(int id) {
+        for (Contas c : getContas()) {
+            if (c.getId() == id) {
+                if (c.getTipo().equals(PAGAR) && c.getValor() > getSaldoAtual()) {
+                    return false;
+                }
+                c.setStatus(statusConcluido(c.getTipo()));
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static ArrayList<Contas> getContas() {
         if (contas.isEmpty()) {
-            contas.add(new Contas(1, "Amazon", "Locação Servidores", 4500.00, "PAGAR", "Vencida",
+            contas.add(new Contas(1, "Amazon", "Locação Servidores", 4500.00, PAGAR, "Vencida",
                     LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 15)));
 
-            contas.add(new Contas(2, "Microsoft", "Licenças Office", 3200.00, "PAGAR", "Pendente",
+            contas.add(new Contas(2, "Microsoft", "Licenças Office", 3200.00, PAGAR, "Pendente",
                     LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 20)));
 
-            contas.add(new Contas(3, "Xavier", "Assessoria Jurídica", 8500.00, "PAGAR", "Paga",
+            contas.add(new Contas(3, "Xavier", "Assessoria Jurídica", 8500.00, PAGAR, "Paga",
                     LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 5)));
 
-            contas.add(new Contas(4, "Imobiliária", "Aluguel Sala", 12000.00, "PAGAR", "Pendente",
+            contas.add(new Contas(4, "Imobiliária", "Aluguel Sala", 12000.00, PAGAR, "Pendente",
                     LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 10)));
 
-            contas.add(new Contas(5, "Adobe", "Licenças Creative Cloud", 1850.00, "PAGAR", "Pendente",
+            contas.add(new Contas(5, "Adobe", "Licenças Creative Cloud", 1850.00, PAGAR, "Pendente",
                     LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 25)));
 
-            contas.add(new Contas(6, "Dell", "Equipamentos de TI", 6800.00, "PAGAR", "Pendente",
+            contas.add(new Contas(6, "Dell", "Equipamentos de TI", 6800.00, PAGAR, "Pendente",
                     LocalDate.of(2026, 9, 5), LocalDate.of(2026, 9, 28)));
 
-            contas.add(new Contas(7, "Google", "Serviços Cloud", 2750.00, "PAGAR", "Pendente",
+            contas.add(new Contas(7, "Google", "Serviços Cloud", 2750.00, PAGAR, "Pendente",
                     LocalDate.of(2026, 9, 10), LocalDate.of(2026, 9, 30)));
 
-            contas.add(new Contas(8, "Tech Solutions", "Impl. ERP", 15000.00, "RECEBER", "Recebida",
+            contas.add(new Contas(8, "Tech Solutions", "Impl. ERP", 15000.00, RECEBER, "Recebida",
                     LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 1)));
 
-            contas.add(new Contas(9, "Metalúrgica", "Consultoria", 8540.00, "RECEBER", "Atrasada",
+            contas.add(new Contas(9, "Metalúrgica", "Consultoria", 8540.00, RECEBER, "Atrasada",
                     LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 12)));
 
-            contas.add(new Contas(10, "Hospital", "Manut. Hardware", 3800.00, "RECEBER", "Pendente",
+            contas.add(new Contas(10, "Hospital", "Manut. Hardware", 3800.00, RECEBER, "Pendente",
                     LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 25)));
 
-            contas.add(new Contas(11, "Banco Nacional", "Suporte TI", 4500.00, "RECEBER", "Recebida",
+            contas.add(new Contas(11, "Banco Nacional", "Suporte TI", 4500.00, RECEBER, "Recebida",
                     LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 18)));
 
-            contas.add(new Contas(12, "Grupo Alpha", "Desenvolvimento Sistema", 12500.00, "RECEBER", "Pendente",
+            contas.add(new Contas(12, "Grupo Alpha", "Desenvolvimento Sistema", 12500.00, RECEBER, "Pendente",
                     LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 22)));
 
-            contas.add(new Contas(13, "Comercial Silva", "Suporte Mensal", 6200.00, "RECEBER", "Pendente",
+            contas.add(new Contas(13, "Comercial Silva", "Suporte Mensal", 6200.00, RECEBER, "Pendente",
                     LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 27)));
 
-            contas.add(new Contas(14, "Construtora Nova", "Consultoria Técnica", 9800.00, "RECEBER", "Pendente",
+            contas.add(new Contas(14, "Construtora Nova", "Consultoria Técnica", 9800.00, RECEBER, "Pendente",
                     LocalDate.of(2026, 9, 5), LocalDate.of(2026, 10, 5)));
         }
 
