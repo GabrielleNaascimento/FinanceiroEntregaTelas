@@ -33,7 +33,7 @@ public class TelaConciliacaoBancaria extends JPanel {
     private final Color FUNDO = new Color(245, 247, 250);
     private final Color BORDA = new Color(226, 232, 240);
     private final Color TEXTO = new Color(30, 38, 52);
-    private final Color CINZA = Color.GRAY;
+    private final Color BRANCO = Color.WHITE;
     private final Color VERDE = new Color(16, 185, 129);
     private final Color VERMELHO = new Color(239, 68, 68);
     private final Color LARANJA = new Color(245, 158, 11);
@@ -208,7 +208,7 @@ public class TelaConciliacaoBancaria extends JPanel {
     txtDataFinal.setText("31/10/2025");
 
     JButton btnFiltrar = new JButton("Filtrar");
-
+    btnFiltrar.setBackground(BRANCO);
     painel.add(lblDe);
     painel.add(txtDataInicial);
     painel.add(lblAte);
@@ -792,11 +792,5 @@ scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, alturaTabela));
         )
     );
 }
-    public static void main(String[] args) {
 
-        SwingUtilities.invokeLater(() -> {
-            new TelaConciliacaoBancaria()
-                    .setVisible(true);
-        });
-    }
 }

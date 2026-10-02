@@ -891,13 +891,5 @@ public class TelaRelatorios extends JPanel {
             }
         }
     }
-
-    public static void main(String[] args) {
-
-        SwingUtilities.invokeLater(() -> {
-
-            new TelaRelatorios()
-                    .setVisible(true);
-        });
-    }
+    
 }
