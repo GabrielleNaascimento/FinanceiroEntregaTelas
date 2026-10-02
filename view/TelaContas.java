@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public class TelaContas extends JFrame {
+public class TelaContas extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -27,68 +27,9 @@ public class TelaContas extends JFrame {
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public TelaContas() {
-        setTitle("ERP Financeiro - Módulo Financeiro");
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
-    }
-
-    private JPanel criarSidebar() {
-        JPanel sidebar = new JPanel();
-        sidebar.setBackground(new Color(27, 54, 93));
-        sidebar.setPreferredSize(new Dimension(220, 0));
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBorder(new EmptyBorder(20, 15, 20, 15));
-
-        JLabel lblLogo = new JLabel("<html><b>ERP Finance</b><br/>"
-                + "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>");
-        lblLogo.setForeground(Color.WHITE);
-        lblLogo.setFont(new Font("SansSerif", Font.PLAIN, 15));
-        lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        sidebar.add(lblLogo);
-        sidebar.add(Box.createVerticalStrut(30));
-
-        sidebar.add(criarBotaoMenu("Dashboard"));
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnContasPagar = new JButton("Contas a Pagar e Receber");
-        btnContasPagar.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnContasPagar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        btnContasPagar.setFocusPainted(false);
-        btnContasPagar.setHorizontalAlignment(SwingConstants.LEFT);
-        btnContasPagar.setBackground(Color.WHITE);
-        btnContasPagar.setForeground(new Color(27, 54, 93));
-        btnContasPagar.setFont(new Font("SansSerif", Font.BOLD, 12));
-        sidebar.add(btnContasPagar);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        sidebar.add(criarBotaoMenu("Fluxo de Caixa"));
-        sidebar.add(Box.createVerticalStrut(5));
-        sidebar.add(criarBotaoMenu("Conciliação Bancária"));
-        sidebar.add(Box.createVerticalStrut(5));
-        sidebar.add(criarBotaoMenu("Relatórios"));
-        sidebar.add(Box.createVerticalStrut(5));
-        sidebar.add(criarBotaoMenu("Fiscal"));
-
-        return sidebar;
-    }
-
-    private JButton criarBotaoMenu(String texto) {
-        JButton btn = new JButton(texto);
-        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        btn.setFocusPainted(false);
-        btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setOpaque(false);
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
-        btn.setForeground(new Color(203, 213, 225));
-        btn.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        return btn;
     }
 
     private JPanel criarAreaPrincipal() {
@@ -104,7 +45,7 @@ public class TelaContas extends JFrame {
         header.setOpaque(false);
         header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
-        JLabel lblUser = new JLabel("Jefferson Riper (Administrador)");
+        JLabel lblUser = new JLabel("Jefferson - Administrador");
         lblUser.setFont(new Font("SansSerif", Font.BOLD, 12));
         header.add(lblUser, BorderLayout.EAST);
 
@@ -484,8 +425,7 @@ public class TelaContas extends JFrame {
     }
 
     private void atualizarTela() {
-        getContentPane().removeAll();
-        add(criarSidebar(), BorderLayout.WEST);
+        removeAll();
         add(criarAreaPrincipal(), BorderLayout.CENTER);
         revalidate();
         repaint();
@@ -497,9 +437,5 @@ public class TelaContas extends JFrame {
 
     private String formatarData(LocalDate data) {
         return data.format(FORMATO_DATA);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new TelaContas().setVisible(true));
     }
 }

@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import model.Conciliacao;
 
-public class TelaConciliacaoBancaria extends JFrame {
+public class TelaConciliacaoBancaria extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -41,15 +41,9 @@ public class TelaConciliacaoBancaria extends JFrame {
     private ArrayList<Conciliacao> movimentacoes;
 
     public TelaConciliacaoBancaria() {
-
-        setTitle("ERP Financeiro - Módulo Financeiro");
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         criarDados();
-        add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
     }
 
@@ -140,7 +134,7 @@ public class TelaConciliacaoBancaria extends JFrame {
     header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
     JLabel lblUser =
-            new JLabel("Jefferson Riper (Administrador)");
+            new JLabel("Jefferson - Administrador");
 
     lblUser.setFont(
             new Font("SansSerif", Font.BOLD, 12)

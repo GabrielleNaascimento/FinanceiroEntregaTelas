@@ -38,20 +38,37 @@ import controller.DashboardController;
 public class TelaDashboard extends JFrame {
     private List<Despesas> despesas = new ArrayList<>();
     private PainelGraficoPizza painelGraficoPizza;
-
+    private JPanel painelConteudo;
+    private JPanel telaDashboard; // dashboard criado uma vez só e reaproveitado
+    private JButton btnDashboard;
+    private JButton botaoSelecionado; // guarda qual botão tá branco agora
     private JLabel lblUser;
     private static final long serialVersionUID = 1L;
 
+    private void mostrarTela(JPanel tela) {
+        painelConteudo.removeAll();
+        painelConteudo.add(tela, BorderLayout.CENTER);
+        painelConteudo.revalidate();
+        painelConteudo.repaint();
+    }
+
+
     public TelaDashboard() { // configurações da janela, como altura, largura, titulo etc
-        setTitle("ERP Financeiro - Módulo Financeiro"); 
+        setTitle("ERP Financeiro - Módulo Financeiro");
         setSize(1280, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
+
         // 'paineis principais', painel lateral e o centro
         add(criarSidebar(), BorderLayout.WEST);
-        add(criarAreaPrincipal(), BorderLayout.CENTER);
+
+        painelConteudo = new JPanel(new BorderLayout());
+        add(painelConteudo, BorderLayout.CENTER);
+
+        telaDashboard = criarAreaPrincipal();   // cria uma vez só, senão o lblUser volta pra "Não logado" ao voltar pro dashboard
+        mostrarTela(telaDashboard);
     }
 
 
@@ -64,16 +81,16 @@ public class TelaDashboard extends JFrame {
         sidebar.setBorder(new EmptyBorder(20, 15, 20, 15));
 
         // Logo
-        JLabel lblLogo = new JLabel("<html><b>ERP Finance</b><br/><small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"); // da pra colocar conf html ao se criar labels 
+        JLabel lblLogo = new JLabel("<html><b>ERP Finance</b><br/><small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"); // da pra colocar conf html ao se criar labels
         lblLogo.setForeground(Color.WHITE); //seta as cores das coisas do primeiro plano( tipo texto) para branco
         lblLogo.setFont(new Font("SansSerif", Font.PLAIN, 15)); //familia da fonte, o .PLAIN serve pra nn deixar o texto ficar negrito ou italico se houver algo q o altere
         lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT); //alinha o texto pra esquerda
         sidebar.add(lblLogo);
         sidebar.add(Box.createVerticalStrut(30)); // cria um espaçamento invisivel
 
-        
+
         // aqui é o botao selecionado, que no caso dessa página é o dashboard
-        JButton btnDashboard = new JButton("Dashboard");
+        btnDashboard = new JButton("Dashboard"); // sem o "JButton" na frente, pra usar o campo e não uma variável local
         btnDashboard.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnDashboard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         btnDashboard.setFocusPainted(false);
@@ -81,34 +98,70 @@ public class TelaDashboard extends JFrame {
         btnDashboard.setBackground(Color.WHITE);
         btnDashboard.setForeground(new Color(27, 54, 93));
         btnDashboard.setFont(new Font("SansSerif", Font.BOLD, 12));
+        botaoSelecionado = btnDashboard; // começa como o selecionado
+
+        btnDashboard.addActionListener(e -> {
+            mostrarTela(telaDashboard);
+            selecionarBotao(btnDashboard);
+        });
+
         sidebar.add(btnDashboard);
         sidebar.add(Box.createVerticalStrut(5));
 
         //os demais botoes serao criados por metodo auxiliar
-        
+
         JButton btnContasPagar = criarBotaoMenu("Contas a Pagar e Receber");
+
+        btnContasPagar.addActionListener(e -> {
+            mostrarTela(new TelaContas());
+            selecionarBotao(btnContasPagar);
+        });
+
         sidebar.add(btnContasPagar);
         sidebar.add(Box.createVerticalStrut(5));
 
         JButton btnFluxoCaixa = criarBotaoMenu("Fluxo de Caixa");
+
+        btnFluxoCaixa.addActionListener(e -> {
+            mostrarTela(new TelaFluxo());
+            selecionarBotao(btnFluxoCaixa);
+        });
+
         sidebar.add(btnFluxoCaixa);
         sidebar.add(Box.createVerticalStrut(5));
 
         JButton btnConciliacao = criarBotaoMenu("Conciliação Bancária");
+
+        btnConciliacao.addActionListener(e -> {
+            mostrarTela(new TelaConciliacaoBancaria());
+            selecionarBotao(btnConciliacao);
+        });
+
         sidebar.add(btnConciliacao);
         sidebar.add(Box.createVerticalStrut(5));
 
         JButton btnRelatorios = criarBotaoMenu("Relatórios");
+
+        btnRelatorios.addActionListener(e -> {
+            mostrarTela(new TelaRelatorios());
+            selecionarBotao(btnRelatorios);
+        });
+
         sidebar.add(btnRelatorios);
         sidebar.add(Box.createVerticalStrut(5));
 
         JButton btnFiscal = criarBotaoMenu("Fiscal");
+
+        btnFiscal.addActionListener(e -> {
+            mostrarTela(new TelaFiscal());
+            selecionarBotao(btnFiscal);
+        });
+
         sidebar.add(btnFiscal);
         sidebar.add(Box.createVerticalStrut(5));
 
-        
         return sidebar;
-        
+
 
     }
     private JButton criarBotaoMenu(String texto) {
@@ -125,7 +178,24 @@ public class TelaDashboard extends JFrame {
         return btn;
     }
 
-    
+    // troca qual botão do menu fica "selecionado" (branco)
+    private void selecionarBotao(JButton btn) {
+        // o que estava selecionado volta pro visual normal, igual ao do criarBotaoMenu
+        botaoSelecionado.setOpaque(false);
+        botaoSelecionado.setContentAreaFilled(false);
+        botaoSelecionado.setBorderPainted(false);
+        botaoSelecionado.setForeground(new Color(203, 213, 225));
+        botaoSelecionado.setFont(new Font("SansSerif", Font.PLAIN, 12));
+
+        // o clicado ganha o visual do dashboard (branco, texto azul, negrito)
+        btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
+        btn.setBackground(Color.WHITE);
+        btn.setForeground(new Color(27, 54, 93));
+        btn.setFont(new Font("SansSerif", Font.BOLD, 12));
+
+        botaoSelecionado = btn;
+    }
     // painel central
     private JPanel criarAreaPrincipal() {
         JPanel area = new JPanel(new BorderLayout());
@@ -136,7 +206,7 @@ public class TelaDashboard extends JFrame {
         header.setOpaque(false); //deixa transparente
         header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
-     
+
 
         lblUser = new JLabel("Não logado");
 
@@ -189,8 +259,8 @@ public class TelaDashboard extends JFrame {
         JPanel card = new JPanel(new GridLayout(3, 1));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-            new EmptyBorder(10, 12, 10, 12)
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                new EmptyBorder(10, 12, 10, 12)
         ));
 
         JLabel t = new JLabel(titulo);
@@ -222,12 +292,12 @@ public class TelaDashboard extends JFrame {
         gbc.weighty = 1.0; // expande o grafico ate ocupar 100% da altura
 
         // grafico de linhas (despesas x receitas)
-        gbc.gridx = 0; // define a primeira coluna 
+        gbc.gridx = 0; // define a primeira coluna
         gbc.weightx = 0.65; //tamanho
         gbc.insets = new Insets(0, 0, 0, 15);
         painel.add(new PainelGraficoLinhas(), gbc); // chama um metodo que vai desenhar as linhas
 
-        // grafico de pizza 
+        // grafico de pizza
         gbc.gridx = 1;
         gbc.weightx = 0.35;
         gbc.insets = new Insets(0, 0, 0, 0);
@@ -254,7 +324,7 @@ public class TelaDashboard extends JFrame {
         gbc.insets = new Insets(0, 0, 0, 15);
         painel.add(criarPainelTabela(), gbc);
 
-        // alerta 
+        // alerta
         gbc.gridx = 1;
         gbc.weightx = 0.3;
         gbc.insets = new Insets(0, 0, 0, 0);
@@ -267,8 +337,8 @@ public class TelaDashboard extends JFrame {
         JPanel painel = new JPanel(new BorderLayout());
         painel.setBackground(Color.WHITE);
         painel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-            new EmptyBorder(12, 12, 12, 12)
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                new EmptyBorder(12, 12, 12, 12)
         ));
 
         JLabel title = new JLabel("Próximas Contas a Pagar");
@@ -278,11 +348,11 @@ public class TelaDashboard extends JFrame {
 
         String[] colunas = {"Descrição", "Fornecedor", "Vencimento", "Valor", "Status"};
         Object[][] dados = {
-            {"Servidor AWS Cloud", "Amazon WS", "15/10/2025", "R$ 8.450,00", "Pendente"},
-            {"Licenças ERP Office", "Microsoft", "18/10/2025", "R$ 3.200,00", "Pendente"},
-            {"Consultoria Contábil", "Lopes Adv.", "20/10/2025", "R$ 5.000,00", "Paga"},
-            {"Aluguel Escritório", "Imob. Central", "22/10/2025", "R$ 12.000,00", "Pendente"},
-            {"Energia Elétrica", "Copel S/A", "25/10/2025", "R$ 1.850,00", "Vencida"}
+                {"Servidor AWS Cloud", "Amazon WS", "15/10/2025", "R$ 8.450,00", "Pendente"},
+                {"Licenças ERP Office", "Microsoft", "18/10/2025", "R$ 3.200,00", "Pendente"},
+                {"Consultoria Contábil", "Lopes Adv.", "20/10/2025", "R$ 5.000,00", "Paga"},
+                {"Aluguel Escritório", "Imob. Central", "22/10/2025", "R$ 12.000,00", "Pendente"},
+                {"Energia Elétrica", "Copel S/A", "25/10/2025", "R$ 1.850,00", "Vencida"}
         };
 
         DefaultTableModel model = new DefaultTableModel(dados, colunas) {
@@ -328,8 +398,8 @@ public class TelaDashboard extends JFrame {
         painel.setLayout(new BoxLayout(painel, BoxLayout.Y_AXIS));
         painel.setBackground(Color.WHITE);
         painel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-            new EmptyBorder(12, 12, 12, 12)
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                new EmptyBorder(12, 12, 12, 12)
         ));
 
         JLabel title = new JLabel("Alertas Críticos");
@@ -338,8 +408,8 @@ public class TelaDashboard extends JFrame {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(new Color(254, 242, 242));
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 4, 0, 0, new Color(239, 68, 68)),
-            new EmptyBorder(8, 8, 8, 8)
+                BorderFactory.createMatteBorder(0, 4, 0, 0, new Color(239, 68, 68)),
+                new EmptyBorder(8, 8, 8, 8)
         ));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
 
@@ -359,8 +429,8 @@ public class TelaDashboard extends JFrame {
         public PainelGraficoLinhas() {
             setBackground(Color.WHITE);
             setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(12, 12, 12, 12)
+                    BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                    new EmptyBorder(12, 12, 12, 12)
             ));
         }
 
@@ -394,220 +464,220 @@ public class TelaDashboard extends JFrame {
     }
 
 
-   
+
 
 
     // classe para desenhar o grafico de pizza (só SWING)
-   private static class PainelGraficoPizza extends JPanel {
-    private List<Despesas> despesas;
+    private static class PainelGraficoPizza extends JPanel {
+        private List<Despesas> despesas;
 
-    public void atualizarDespesas(List<Despesas> despesas) {
-    this.despesas = despesas;
-    repaint();
-}
+        public void atualizarDespesas(List<Despesas> despesas) {
+            this.despesas = despesas;
+            repaint();
+        }
 
-    public PainelGraficoPizza(List<Despesas> despesas) {
-        this.despesas = despesas;
+        public PainelGraficoPizza(List<Despesas> despesas) {
+            this.despesas = despesas;
 
-        for (Despesas d : despesas) {
+            for (Despesas d : despesas) {
 
-        System.out.println(d.getCategoria());
-        System.out.println(d.getValor());
+                System.out.println(d.getCategoria());
+                System.out.println(d.getValor());
 
-}
+            }
 
-        setBackground(Color.WHITE);
-        setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-            new EmptyBorder(12, 12, 12, 12)
-        ));
-    }
+            setBackground(Color.WHITE);
+            setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                    new EmptyBorder(12, 12, 12, 12)
+            ));
+        }
 
-    // Método responsável por desenhar uma fatia
-    private void desenharFatia(
-            Graphics2D g2,
-            int x,
-            int y,
-            int size,
-            double valor,
-            double total,
-            int inicio,
-            Color cor
-    ) {
-        int angulo = (int) Math.round(valor / total * 360);
+        // Método responsável por desenhar uma fatia
+        private void desenharFatia(
+                Graphics2D g2,
+                int x,
+                int y,
+                int size,
+                double valor,
+                double total,
+                int inicio,
+                Color cor
+        ) {
+            int angulo = (int) Math.round(valor / total * 360);
 
-        g2.setColor(cor);
-        g2.fillArc(x, y, size, size, inicio, angulo);
-    }
+            g2.setColor(cor);
+            g2.fillArc(x, y, size, size, inicio, angulo);
+        }
 
-    @Override
-protected void paintComponent(Graphics g) {
+        @Override
+        protected void paintComponent(Graphics g) {
 
-    super.paintComponent(g);
+            super.paintComponent(g);
 
-    Graphics2D g2 = (Graphics2D) g;
+            Graphics2D g2 = (Graphics2D) g;
 
-    g2.setRenderingHint(
-        RenderingHints.KEY_ANTIALIASING,
-        RenderingHints.VALUE_ANTIALIAS_ON
-    );
+            g2.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+            );
 
-    g2.setFont(new Font("SansSerif", Font.BOLD, 13));
-    g2.setColor(Color.BLACK);
-    g2.drawString("Despesas por Categoria", 12, 22);
+            g2.setFont(new Font("SansSerif", Font.BOLD, 13));
+            g2.setColor(Color.BLACK);
+            g2.drawString("Despesas por Categoria", 12, 22);
 
-    int size = Math.min(getWidth(), getHeight()) - 70;
-    int x = 20;
-    int y = 45;
-
-
-    // Valores das categorias
-    double folhaPagamento = 0;
-    double fornecedores = 0;
-    double impostos = 0;
-    double operacional = 0;
-    double outros = 0;
+            int size = Math.min(getWidth(), getHeight()) - 70;
+            int x = 20;
+            int y = 45;
 
 
-    // Percorre todas as despesas
-    for (Despesas d : despesas) {
+            // Valores das categorias
+            double folhaPagamento = 0;
+            double fornecedores = 0;
+            double impostos = 0;
+            double operacional = 0;
+            double outros = 0;
 
-        if (d.getCategoria().equals("Folha de Pagamento")) {
 
-            folhaPagamento += d.getValor();
+            // Percorre todas as despesas
+            for (Despesas d : despesas) {
 
-        } else if (d.getCategoria().equals("Fornecedores")) {
+                if (d.getCategoria().equals("Folha de Pagamento")) {
 
-            fornecedores += d.getValor();
+                    folhaPagamento += d.getValor();
 
-        } else if (d.getCategoria().equals("Impostos")) {
+                } else if (d.getCategoria().equals("Fornecedores")) {
 
-            impostos += d.getValor();
+                    fornecedores += d.getValor();
 
-        } else if (d.getCategoria().equals("Operacional")) {
+                } else if (d.getCategoria().equals("Impostos")) {
 
-            operacional += d.getValor();
+                    impostos += d.getValor();
 
-        } else {
+                } else if (d.getCategoria().equals("Operacional")) {
 
-            outros += d.getValor();
+                    operacional += d.getValor();
+
+                } else {
+
+                    outros += d.getValor();
+                }
+            }
+
+
+            // Soma total
+            double total =
+                    folhaPagamento
+                            + fornecedores
+                            + impostos
+                            + operacional
+                            + outros;
+
+
+            // Evita divisão por zero
+            if (total == 0) {
+                return;
+            }
+
+
+            int inicio = 0;
+
+
+            // Folha de Pagamento
+            desenharFatia(
+                    g2, x, y, size,
+                    folhaPagamento,
+                    total,
+                    inicio,
+                    new Color(37, 99, 235)
+            );
+
+            inicio += Math.round(
+                    folhaPagamento / total * 360
+            );
+
+
+            // Fornecedores
+            desenharFatia(
+                    g2, x, y, size,
+                    fornecedores,
+                    total,
+                    inicio,
+                    new Color(16, 185, 129)
+            );
+
+            inicio += Math.round(
+                    fornecedores / total * 360
+            );
+
+
+            // Impostos
+            desenharFatia(
+                    g2, x, y, size,
+                    impostos,
+                    total,
+                    inicio,
+                    new Color(245, 158, 11)
+            );
+
+            inicio += Math.round(
+                    impostos / total * 360
+            );
+
+
+            // Operacional
+            desenharFatia(
+                    g2, x, y, size,
+                    operacional,
+                    total,
+                    inicio,
+                    new Color(239, 68, 68)
+            );
+
+            inicio += Math.round(
+                    operacional / total * 360
+            );
+
+
+            // Outros
+            desenharFatia(
+                    g2, x, y, size,
+                    outros,
+                    total,
+                    inicio,
+                    new Color(168, 85, 247)
+            );
         }
     }
-
-
-    // Soma total
-    double total =
-            folhaPagamento
-            + fornecedores
-            + impostos
-            + operacional
-            + outros;
-
-
-    // Evita divisão por zero
-    if (total == 0) {
-        return;
-    }
-
-
-    int inicio = 0;
-
-
-    // Folha de Pagamento
-    desenharFatia(
-        g2, x, y, size,
-        folhaPagamento,
-        total,
-        inicio,
-        new Color(37, 99, 235)
-    );
-
-    inicio += Math.round(
-        folhaPagamento / total * 360
-    );
-
-
-    // Fornecedores
-    desenharFatia(
-        g2, x, y, size,
-        fornecedores,
-        total,
-        inicio,
-        new Color(16, 185, 129)
-    );
-
-    inicio += Math.round(
-        fornecedores / total * 360
-    );
-
-
-    // Impostos
-    desenharFatia(
-        g2, x, y, size,
-        impostos,
-        total,
-        inicio,
-        new Color(245, 158, 11)
-    );
-
-    inicio += Math.round(
-        impostos / total * 360
-    );
-
-
-    // Operacional
-    desenharFatia(
-        g2, x, y, size,
-        operacional,
-        total,
-        inicio,
-        new Color(239, 68, 68)
-    );
-
-    inicio += Math.round(
-        operacional / total * 360
-    );
-
-
-    // Outros
-    desenharFatia(
-        g2, x, y, size,
-        outros,
-        total,
-        inicio,
-        new Color(168, 85, 247)
-    );
-}
-}
     public void identificarUsuario(String nome, String sessao) {
         this.lblUser.setText(nome + " - " + sessao);
 
     }
     public void carregarDespesas(List<Despesas> despesas) {
-    this.despesas = despesas;
-    painelGraficoPizza.atualizarDespesas(despesas);
-}
-    
-public static void main(String[] args) {
-    SwingUtilities.invokeLater(() -> {
+        this.despesas = despesas;
+        painelGraficoPizza.atualizarDespesas(despesas);
+    }
 
-        TelaDashboard tela = new TelaDashboard();
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
 
-        Usuario usuario = new Usuario();
+            TelaDashboard tela = new TelaDashboard();
 
-        // teste de usuario logado, administrador.
-        
-        usuario.setNomeUsuario("Jefferson");
-        usuario.setSessaoUsuario("Administrador");
-        
+            Usuario usuario = new Usuario();
 
-        DashboardController controller =
-            new DashboardController(tela, usuario);
+            // teste de usuario logado, administrador.
 
-        controller.identificarUsuario();
-        controller.carregarDespesas();
+            usuario.setNomeUsuario("Jefferson");
+            usuario.setSessaoUsuario("Administrador");
 
-        tela.setVisible(true);
-    });
-}
+
+            DashboardController controller =
+                    new DashboardController(tela, usuario);
+
+            controller.identificarUsuario();
+            controller.carregarDespesas();
+
+            tela.setVisible(true);
+        });
+    }
 }

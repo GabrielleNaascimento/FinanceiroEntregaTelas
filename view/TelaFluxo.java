@@ -9,7 +9,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import model.Fluxo;
 
-public class TelaFluxo extends JFrame {
+public class TelaFluxo extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -25,15 +25,9 @@ public class TelaFluxo extends JFrame {
     private ArrayList<Fluxo> movimentacoes;
 
     public TelaFluxo() {
-
-        setTitle("ERP Financeiro - Módulo Financeiro");
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         criarDados();
-        add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
     }
 
@@ -176,7 +170,7 @@ public class TelaFluxo extends JFrame {
 
         JLabel lblUser =
                 new JLabel(
-                        "Jefferson Riper (Administrador)"
+                        "Jefferson - Administrador"
                 );
 
         lblUser.setFont(
