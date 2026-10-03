@@ -242,14 +242,14 @@ public class TelaDashboard extends JFrame {
         area.add(conteudo, BorderLayout.CENTER);
         return area;
     }
-
+    
     // cards de cima
     private JPanel criarCards() {
         JPanel painel = new JPanel(new GridLayout(1, 4, 15, 0));
         painel.setOpaque(false);
         painel.setAlignmentX(Component.LEFT_ALIGNMENT);
         painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
-
+        
         painel.add(cardMetrica("Saldo Atual", "R$ 284.750,00", "+4.2% vs. mês anterior", new Color(16, 185, 129)));
         painel.add(cardMetrica("Receitas", "R$ 156.300,00", "+8.5% vs. mês anterior", new Color(16, 185, 129)));
         painel.add(cardMetrica("Despesas", "R$ 98.420,00", "-2.1% vs. mês anterior", new Color(239, 68, 68)));
@@ -313,10 +313,10 @@ public class TelaDashboard extends JFrame {
 
         return painel;
     }
-
+    
     // tabela e alertas
     private JPanel criarTabelaEAlertas() {
-        JPanel painel = new JPanel(new GridBagLayout());
+       /* */ JPanel painel = new JPanel(new GridBagLayout());
         painel.setOpaque(false);
         painel.setAlignmentX(Component.LEFT_ALIGNMENT);
         painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 260));
