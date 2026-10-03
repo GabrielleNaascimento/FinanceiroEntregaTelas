@@ -1,5 +1,6 @@
 package view;
 
+import model.ResumoMensal;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -18,14 +19,16 @@ import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
+import java.util.List;
 
 public class GraficoLinhaDashboard extends JPanel {
+
+    private JFreeChart chart; // campo, para poder usar fora do construtor
 
     public GraficoLinhaDashboard() {
         setLayout(new BorderLayout());
 
-        CategoryDataset dataset = createDataset();
-        JFreeChart chart = createChart(dataset);
+        chart = createChart(new DefaultCategoryDataset()); // começa vazio
 
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setBackground(Color.WHITE);
@@ -37,6 +40,16 @@ public class GraficoLinhaDashboard extends JPanel {
         add(chartPanel, BorderLayout.CENTER);
     }
 
+    public void atualizarDados(List<ResumoMensal> dados) {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+        for (ResumoMensal r : dados) {
+            dataset.addValue(r.getReceita(), "Receitas", r.getMes());
+            dataset.addValue(r.getDespesa(), "Despesas", r.getMes());
+        }
+
+        chart.getCategoryPlot().setDataset(dataset); // o gráfico se redesenha sozinho
+    }
     private JFreeChart createChart(CategoryDataset dataset) {
         JFreeChart chart = ChartFactory.createLineChart(
                 "Receita x Despesa",
@@ -72,7 +85,7 @@ public class GraficoLinhaDashboard extends JPanel {
 
         return chart;
     }
-
+    /* 
     private CategoryDataset createDataset() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -92,5 +105,6 @@ public class GraficoLinhaDashboard extends JPanel {
         dataset.addValue(98420,  "Despesas", "Outubro");
 
         return dataset;
-    }
+    }  
+     */
 }

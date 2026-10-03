@@ -33,17 +33,20 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import model.Despesas;
 import model.Usuario;
+import model.ResumoMensal;
 import controller.DashboardController;
 
 public class TelaDashboard extends JFrame {
     private List<Despesas> despesas = new ArrayList<>();
     private PainelGraficoPizza painelGraficoPizza;
+    private GraficoLinhaDashboard painelGraficoLinha;
     private JPanel painelConteudo;
     private JPanel telaDashboard; // dashboard criado uma vez só e reaproveitado
     private JButton btnDashboard;
     private JButton botaoSelecionado; // guarda qual botão tá branco agora
     private JLabel lblUser;
     private static final long serialVersionUID = 1L;
+
 
     private void mostrarTela(JPanel tela) {
         painelConteudo.removeAll();
@@ -282,7 +285,6 @@ public class TelaDashboard extends JFrame {
 
     // graficos do SWING (Graphics2D)
     private JPanel criarGraficos() {
-        JPanel painelGraficoLinha = new GraficoLinhaDashboard();
         JPanel painel = new JPanel(new GridBagLayout());
 
         painel.setOpaque(false);
@@ -429,7 +431,9 @@ public class TelaDashboard extends JFrame {
     }
 
     // classe para desenho do grafico de linhas (só SWING)
-    
+    public void carregarResumoMensal(List<ResumoMensal> dados) {
+        painelGraficoLinha.atualizarDados(dados);
+    }
 
 
 
@@ -644,7 +648,7 @@ public class TelaDashboard extends JFrame {
 
             controller.identificarUsuario();
             controller.carregarDespesas();
-
+            controller.carregarResumoMensal();
             tela.setVisible(true);
         });
     }

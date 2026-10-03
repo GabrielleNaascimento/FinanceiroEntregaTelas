@@ -1,9 +1,12 @@
 package controller;
 
+import model.ResumoMensal;
 import dao.DespesasDAO;
 import model.Despesas;
 import model.Usuario;
 import view.TelaDashboard;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class DashboardController {
@@ -26,6 +29,15 @@ public class DashboardController {
      
     }
 
+    public void carregarResumoMensal() {
+        List<ResumoMensal> dados = new ArrayList<>();
+        dados.add(new ResumoMensal("Maio",      120000, 90000));
+        dados.add(new ResumoMensal("Junho",     135000, 98000));
+        dados.add(new ResumoMensal("Julho",     128000, 105000));
+
+        tela.carregarResumoMensal(dados);
+    }
+    
    
 
     public List<Despesas> listarDespesas() {
@@ -37,7 +49,6 @@ public class DashboardController {
     tela.carregarDespesas(despesas);
 }
 
-    
     }
 
     
