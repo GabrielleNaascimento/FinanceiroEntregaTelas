@@ -1,7 +1,7 @@
 package view;
 
 
-
+import org.jfree.chart.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -110,26 +110,14 @@ public class TelaDashboard extends JFrame {
 
         //os demais botoes serao criados por metodo auxiliar
 
-        JButton btnContasPagar = criarBotaoMenu("Contas a Pagar");
+        JButton btnContasPagar = criarBotaoMenu("Contas a Pagar e Receber");
 
         btnContasPagar.addActionListener(e -> {
             mostrarTela(new TelaContasPagar());
             selecionarBotao(btnContasPagar);
         });
 
-
         sidebar.add(btnContasPagar);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnContasReceber = criarBotaoMenu("Contas a Receber");
-
-        btnContasReceber.addActionListener(e -> {
-            mostrarTela(new TelaContasReceber());
-            selecionarBotao(btnContasReceber);
-        });
-
-
-        sidebar.add(btnContasReceber);
         sidebar.add(Box.createVerticalStrut(5));
 
         JButton btnFluxoCaixa = criarBotaoMenu("Fluxo de Caixa");
@@ -294,21 +282,26 @@ public class TelaDashboard extends JFrame {
 
     // graficos do SWING (Graphics2D)
     private JPanel criarGraficos() {
+        JPanel painelGraficoLinha = new GraficoLinhaDashboard();
         JPanel painel = new JPanel(new GridBagLayout());
+
         painel.setOpaque(false);
         painel.setAlignmentX(Component.LEFT_ALIGNMENT);
         painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 260));
+        
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH; // preenche todo o espaço vertical e horizontal
         gbc.weighty = 1.0; // expande o grafico ate ocupar 100% da altura
 
         // grafico de linhas (despesas x receitas)
-        gbc.gridx = 0; // define a primeira coluna
-        gbc.weightx = 0.65; //tamanho
-        gbc.insets = new Insets(0, 0, 0, 15);
-        painel.add(new PainelGraficoLinhas(), gbc); // chama um metodo que vai desenhar as linhas
+        gbc.gridx = 0;
+        gbc.weightx = 0.5;
+        painelGraficoLinha = new GraficoLinhaDashboard();
+        painel.add(painelGraficoLinha, gbc);
 
+        // chama um metodo que vai desenhar as linhas
+            
         // grafico de pizza
         gbc.gridx = 1;
         gbc.weightx = 0.35;
@@ -436,44 +429,7 @@ public class TelaDashboard extends JFrame {
     }
 
     // classe para desenho do grafico de linhas (só SWING)
-    private static class PainelGraficoLinhas extends JPanel {
-
-        public PainelGraficoLinhas() {
-            setBackground(Color.WHITE);
-            setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                    new EmptyBorder(12, 12, 12, 12)
-            ));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setFont(new Font("SansSerif", Font.BOLD, 13));
-            g2.setColor(Color.BLACK);
-            g2.drawString("Receitas x Despesas", 12, 22);
-
-            int w = getWidth() - 40;
-            int h = getHeight() - 60;
-            int startX = 20;
-            int startY = 40;
-
-            // Linha de base
-            g2.setColor(new Color(226, 232, 240));
-            g2.drawLine(startX, startY + h, startX + w, startY + h);
-
-            // Linha Receitas (Verde)
-            g2.setColor(new Color(16, 185, 129));
-            g2.drawLine(startX, startY + (int)(h * 0.7), startX + w, startY + (int)(h * 0.2));
-
-            // Linha Despesas (Vermelha)
-            g2.setColor(new Color(239, 68, 68));
-            g2.drawLine(startX, startY + (int)(h * 0.8), startX + w, startY + (int)(h * 0.9));
-        }
-    }
+    
 
 
 
