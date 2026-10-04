@@ -1,7 +1,7 @@
 package view;
 
 
-import org.jfree.chart.*;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -14,7 +14,9 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints; //aproveitei e peguei mais importações do próprio awt
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -31,6 +33,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
+import model.Contas;
 import model.Despesas;
 import model.Usuario;
 import model.ResumoMensal;
@@ -40,7 +44,9 @@ public class TelaDashboard extends JFrame {
     private List<Despesas> despesas = new ArrayList<>();
     private PainelGraficoPizza painelGraficoPizza;
     private GraficoLinhaDashboard painelGraficoLinha;
+    private static final NumberFormat FORMATO_MOEDA = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
     private JPanel painelConteudo;
+    private JPanel painelCards;
     private JPanel telaDashboard; // dashboard criado uma vez só e reaproveitado
     private JButton btnDashboard;
     private JButton botaoSelecionado; // guarda qual botão tá branco agora
@@ -72,7 +78,14 @@ public class TelaDashboard extends JFrame {
 
         telaDashboard = criarAreaPrincipal();   // cria uma vez só, senão o lblUser volta pra "Não logado" ao voltar pro dashboard
         mostrarTela(telaDashboard);
-    }
+
+        
+     }
+
+        
+   
+
+        
 
 
     // menu lateral
@@ -104,8 +117,10 @@ public class TelaDashboard extends JFrame {
         botaoSelecionado = btnDashboard; // começa como o selecionado
 
         btnDashboard.addActionListener(e -> {
+            atualizarTela();
             mostrarTela(telaDashboard);
             selecionarBotao(btnDashboard);
+             
         });
 
         sidebar.add(btnDashboard);
@@ -245,17 +260,26 @@ public class TelaDashboard extends JFrame {
     
     // cards de cima
     private JPanel criarCards() {
-        JPanel painel = new JPanel(new GridLayout(1, 4, 15, 0));
-        painel.setOpaque(false);
-        painel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
-        
-        painel.add(cardMetrica("Saldo Atual", "R$ 284.750,00", "+4.2% vs. mês anterior", new Color(16, 185, 129)));
-        painel.add(cardMetrica("Receitas", "R$ 156.300,00", "+8.5% vs. mês anterior", new Color(16, 185, 129)));
-        painel.add(cardMetrica("Despesas", "R$ 98.420,00", "-2.1% vs. mês anterior", new Color(239, 68, 68)));
-        painel.add(cardMetrica("Fluxo de Caixa", "R$ 57.880,00", "+12.4% vs. mês anterior", new Color(16, 185, 129)));
+        painelCards = new JPanel(new GridLayout(1, 4, 15, 0));
+        painelCards.setOpaque(false);
+        painelCards.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCards.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
+        preencherCards();
+        return painelCards;
+    }
+    private void preencherCards() {
+        painelCards.removeAll();
 
-        return painel;
+        painelCards.add(cardMetrica("Saldo atual", formatarValor(Contas.getSaldoAtual()), "sem dados", new Color(16, 185, 129)));
+
+        /* painel.add(cardMetrica("Saldo Atual", "R$ 284.750,00", "+4.2% vs. mês anterior", new Color(16, 185, 129))); */
+
+        painelCards.add(cardMetrica("Receitas", "R$ 156.300,00", "+8.5% vs. mês anterior", new Color(16, 185, 129)));
+        painelCards.add(cardMetrica("Despesas", "R$ 98.420,00", "-2.1% vs. mês anterior", new Color(239, 68, 68)));
+        painelCards.add(cardMetrica("Fluxo de Caixa", "R$ 57.880,00", "+12.4% vs. mês anterior", new Color(16, 185, 129)));
+
+       painelCards.revalidate();
+       painelCards.repaint();
     }
     // metoxo auxiliar que vai criar os cards superiores
     private JPanel cardMetrica(String titulo, String valor, String variacao, Color corVariacao) {
@@ -628,6 +652,12 @@ public class TelaDashboard extends JFrame {
     public void carregarDespesas(List<Despesas> despesas) {
         this.despesas = despesas;
         painelGraficoPizza.atualizarDespesas(despesas);
+    }
+    private String formatarValor(double valor) {
+        return FORMATO_MOEDA.format(valor);
+    }
+    public void atualizarTela() {
+        preencherCards();
     }
 
     public static void main(String[] args) {
