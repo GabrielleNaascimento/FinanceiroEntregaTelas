@@ -42,9 +42,11 @@ import controller.DashboardController;
 
 public class TelaDashboard extends JFrame {
     private List<Despesas> despesas = new ArrayList<>();
+    private List<ResumoMensal> resumos = new ArrayList<>();
     private PainelGraficoPizza painelGraficoPizza;
     private GraficoLinhaDashboard painelGraficoLinha;
     private static final NumberFormat FORMATO_MOEDA = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+    private static final Locale PT_BR = Locale.forLanguageTag("pt-BR");
     private JPanel painelConteudo;
     private JPanel painelCards;
     private JPanel telaDashboard; // dashboard criado uma vez só e reaproveitado
@@ -52,6 +54,14 @@ public class TelaDashboard extends JFrame {
     private JButton botaoSelecionado; // guarda qual botão tá branco agora
     private JLabel lblUser;
     private static final long serialVersionUID = 1L;
+
+    private static final Color VERDE    = new Color(16, 185, 129);
+    private static final Color VERMELHO = new Color(239, 68, 68);
+
+    private Color corVariacao(double atual, double anterior, boolean altaEhBoa) {
+    boolean subiu = atual >= anterior;
+    return (subiu == altaEhBoa) ? VERDE : VERMELHO;
+}
 
 
     private void mostrarTela(JPanel tela) {
@@ -83,7 +93,17 @@ public class TelaDashboard extends JFrame {
      }
 
         
-   
+     
+
+        private String formatarVariacao(double atual, double anterior) {
+            if (anterior == 0) {
+                return "sem base de comparação"; // evita divisão por zero
+            }  
+             double variacao = (atual - anterior) / anterior * 100;
+             return String.format(PT_BR, "%+.1f%% vs. mês anterior", variacao);
+        }
+
+        
 
         
 
@@ -268,19 +288,47 @@ public class TelaDashboard extends JFrame {
         return painelCards;
     }
     private void preencherCards() {
-        painelCards.removeAll();
+    painelCards.removeAll();
 
-        painelCards.add(cardMetrica("Saldo atual", formatarValor(Contas.getSaldoAtual()), "sem dados", new Color(16, 185, 129)));
+    painelCards.add(cardMetrica("Saldo atual",
+            formatarValor(Contas.getSaldoAtual()), "aaa", VERDE));
 
-        /* painel.add(cardMetrica("Saldo Atual", "R$ 284.750,00", "+4.2% vs. mês anterior", new Color(16, 185, 129))); */
+    int n = resumos.size();
+    if (n >= 2) {
+        ResumoMensal atual = resumos.get(n - 1);
+        ResumoMensal anterior = resumos.get(n - 2);
 
-        painelCards.add(cardMetrica("Receitas", "R$ 156.300,00", "+8.5% vs. mês anterior", new Color(16, 185, 129)));
-        painelCards.add(cardMetrica("Despesas", "R$ 98.420,00", "-2.1% vs. mês anterior", new Color(239, 68, 68)));
-        painelCards.add(cardMetrica("Fluxo de Caixa", "R$ 57.880,00", "+12.4% vs. mês anterior", new Color(16, 185, 129)));
+        double recAtual = atual.getReceita();
+        double recAnt = anterior.getReceita();
+        double despAtual = atual.getDespesa();
+        double despAnt = anterior.getDespesa();
+        double fluxoAtual = recAtual - despAtual;
+        double fluxoAnt = recAnt - despAnt;
 
-       painelCards.revalidate();
-       painelCards.repaint();
+        painelCards.add(cardMetrica("Receitas", formatarValor(recAtual),
+                formatarVariacao(recAtual, recAnt), corVariacao(recAtual, recAnt, true)));
+        painelCards.add(cardMetrica("Despesas", formatarValor(despAtual),
+                formatarVariacao(despAtual, despAnt), corVariacao(despAtual, despAnt, false)));
+        painelCards.add(cardMetrica("Fluxo de Caixa", formatarValor(fluxoAtual),
+                formatarVariacao(fluxoAtual, fluxoAnt), corVariacao(fluxoAtual, fluxoAnt, true)));
+    } else {
+        // ainda sem dados suficientes
+        painelCards.add(cardMetrica("Receitas", "-", "sem dados", Color.GRAY));
+        painelCards.add(cardMetrica("Despesas", "-", "sem dados", Color.GRAY));
+        painelCards.add(cardMetrica("Fluxo de Caixa", "-", "sem dados", Color.GRAY));
     }
+
+    painelCards.revalidate();
+    painelCards.repaint();
+}
+private Runnable aoAtualizar;
+public void setAoAtualizar(Runnable r) { this.aoAtualizar = r; }
+
+public void atualizarTela() {
+    if (aoAtualizar != null) aoAtualizar.run();
+    else preencherCards();
+}
+
     // metoxo auxiliar que vai criar os cards superiores
     private JPanel cardMetrica(String titulo, String valor, String variacao, Color corVariacao) {
         JPanel card = new JPanel(new GridLayout(3, 1));
@@ -337,7 +385,7 @@ public class TelaDashboard extends JFrame {
 
         return painel;
     }
-    
+     
     // tabela e alertas
     private JPanel criarTabelaEAlertas() {
        /* */ JPanel painel = new JPanel(new GridBagLayout());
@@ -488,6 +536,10 @@ public class TelaDashboard extends JFrame {
                     new EmptyBorder(12, 12, 12, 12)
             ));
         }
+
+        
+
+        
 
         // Método responsável por desenhar uma fatia
         private void desenharFatia(
@@ -656,9 +708,7 @@ public class TelaDashboard extends JFrame {
     private String formatarValor(double valor) {
         return FORMATO_MOEDA.format(valor);
     }
-    public void atualizarTela() {
-        preencherCards();
-    }
+    
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

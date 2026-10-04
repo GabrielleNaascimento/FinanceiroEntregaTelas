@@ -29,7 +29,7 @@ public class DashboardController {
 
      
     }
-
+    
     
     private int gerarNumero(int minimo, int maximo) {
     return new Random().nextInt(maximo - minimo + 1) + minimo;
