@@ -75,6 +75,7 @@ public class GraficoLinhaDashboard extends JPanel {
         plot.setDomainGridlinesVisible(true);
         plot.setDomainGridlinePaint(Color.BLACK);
 
+    
 
         LineAndShapeRenderer renderer = new LineAndShapeRenderer(true, true);
         renderer.setSeriesPaint(0, new Color(16, 185, 129)); // Receitas
@@ -85,26 +86,5 @@ public class GraficoLinhaDashboard extends JPanel {
 
         return chart;
     }
-    /* 
-    private CategoryDataset createDataset() {
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
-        // addValue(valor, nomeDaSerie, categoria)
-        dataset.addValue(120000, "Receitas", "Maio");
-        dataset.addValue(135000, "Receitas", "Junho");
-        dataset.addValue(128000, "Receitas", "Julho");
-        dataset.addValue(142000, "Receitas", "Agosto");
-        dataset.addValue(150000, "Receitas", "Setembro");
-        dataset.addValue(156300, "Receitas", "Outubro");
-
-        dataset.addValue(90000,  "Despesas", "Maio");
-        dataset.addValue(98000,  "Despesas", "Junho");
-        dataset.addValue(105000, "Despesas", "Julho");
-        dataset.addValue(96000,  "Despesas", "Agosto");
-        dataset.addValue(101000, "Despesas", "Setembro");
-        dataset.addValue(98420,  "Despesas", "Outubro");
-
-        return dataset;
-    }  
-     */
+    
 }

@@ -3,6 +3,7 @@ package controller;
 import model.ResumoMensal;
 import dao.DespesasDAO;
 import model.Despesas;
+import model.Contas;
 import model.Usuario;
 import view.TelaDashboard;
 
@@ -20,7 +21,16 @@ public class DashboardController {
         this.tela = tela;
         this.usuariologado = usuariologado;
         this.despesasDAO = new DespesasDAO();
-    }
+        this.tela.setAoAtualizar(() -> {
+    carregarSaldoAtual();
+    carregarResumoMensal();
+});
+  
+
+    }  
+    
+
+
 
     public void identificarUsuario() {
         String nome = usuariologado.getNomeUsuario();
@@ -75,6 +85,12 @@ public class DashboardController {
     ));
 
     tela.carregarResumoMensal(dados);
+    int n = dados.size();
+    if (n >= 2) {
+        ResumoMensal atual = dados.get(n - 1);
+        ResumoMensal anterior = dados.get(n - 2);
+        tela.carregarMetricas(atual, anterior);
+    }
 }
     
    
@@ -87,8 +103,13 @@ public class DashboardController {
 
     tela.carregarDespesas(despesas);
 }
-
+    public void carregarSaldoAtual() {
+        double saldoAtual = Contas.getSaldoAtual();
+        tela.carregarSaldo(saldoAtual);
     }
+
+}
+    
 
     
            
