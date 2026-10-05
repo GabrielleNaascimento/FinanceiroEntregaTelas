@@ -1,7 +1,5 @@
 package view;
 
-
-import org.jfree.chart.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -13,8 +11,12 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.RenderingHints; //aproveitei e peguei mais importações do próprio awt
+import java.awt.RenderingHints; 
+
+import java.text.NumberFormat;
+
 import java.util.List;
+import java.util.Locale;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -31,49 +33,142 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
 import model.Despesas;
 import model.Usuario;
 import model.ResumoMensal;
 import controller.DashboardController;
 
 public class TelaDashboard extends JFrame {
-    private List<Despesas> despesas = new ArrayList<>();
-    private PainelGraficoPizza painelGraficoPizza;
-    private GraficoLinhaDashboard painelGraficoLinha;
-    private JPanel painelConteudo;
-    private JPanel telaDashboard; // dashboard criado uma vez só e reaproveitado
-    private JButton btnDashboard;
-    private JButton botaoSelecionado; // guarda qual botão tá branco agora
-    private JLabel lblUser;
+
+    // =====================================================================
+    // 1. DECLARANDO CONSTANTES
+    // =====================================================================
+
+    private static final Locale PT_BR = Locale.forLanguageTag("pt-BR"); // define o padrão de moeda e data para o Brasil. Usado em formatarValor() e formatarVariacao()
+    private static final NumberFormat FORMATO_MOEDA = NumberFormat.getCurrencyInstance(PT_BR); // formata valores monetários para o padrão brasileiro, com R$ e vírgula
     private static final long serialVersionUID = 1L;
 
+    private static final Color VERDE    = new Color(16, 185, 129);
+    private static final Color VERMELHO = new Color(239, 68, 68);
 
-    private void mostrarTela(JPanel tela) {
+
+    // =====================================================================
+    // 2. DECLARANDO CAMPOS (componentes que precisam ser acessados dps de criados.)
+    // =====================================================================
+    private double saldoAtual;
+    private double fluxoAtual;
+    private double fluxoAnterior;
+    private ResumoMensal resumoAtual;
+    private ResumoMensal resumoAnterior;
+
+    private JPanel painelConteudo; // painel central, onde o dashboard e as outras telas serão trocadas
+    private JPanel painelCards; // painel dos cards de cima. Usado para atualizar os cards sem precisar recriar a tela toda
+    private JPanel telaDashboard; // painel do dashboard, que é criado apenas uma vez, e depois é mostrado ou escondido conforme a tela
+    private JButton btnDashboard; // botão do menu lateral. Só existe pra poder ser 'selecionado' (branco) quando o dashboard estiver visível
+    private JButton botaoSelecionado; // e este campo guarda qual botão do menu lateral está selecionado (branco) no momento
+
+    private JLabel lblUser; // label do canto superior direito, que mostra o nome do usuário logado e a sessão
+
+    private List<Despesas> despesas = new ArrayList<>(); // Lista de despesas. Usada para atualizar o gráfico de pizza sem precisar recriar a tela toda
+   
+    private PainelGraficoPizza painelGraficoPizza; // painel do gráfico de pizza, criado uma vez.
+    private GraficoLinhaDashboard painelGraficoLinha; // painel do gráfico de linhas, criado uma vez.
+
+    private Runnable aoAtualizar;
+
+
+    // =====================================================================
+    // 3. CONSTRUTOR (onde a tela é criada e os componentes são adicionados)
+    // =====================================================================
+
+    public TelaDashboard() { 
+        setTitle("ERP Financeiro - Módulo Financeiro");
+        setSize(1280, 850);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+        add(criarSidebar(), BorderLayout.WEST);
+        painelConteudo = new JPanel(new BorderLayout());
+        add(painelConteudo, BorderLayout.CENTER);
+        telaDashboard = criarAreaPrincipal(); 
+        mostrarTela(telaDashboard);
+    }
+
+
+    // =====================================================================
+    // 4. MÉTODOS PUBLICOS (que podem ser chamados de fora da classe --> controller)
+    // =====================================================================
+
+    public void setAoAtualizar(Runnable r) { 
+        this.aoAtualizar = r; 
+    }
+
+    public void atualizarTela() {
+    if (aoAtualizar != null) aoAtualizar.run();
+    else preencherCards();
+    }
+    
+    public void carregarResumoMensal(List<ResumoMensal> dados) {
+        painelGraficoLinha.atualizarDados(dados);
+    }
+
+    public void carregarDespesas(List<Despesas> despesas) {
+        this.despesas = despesas;
+        painelGraficoPizza.atualizarDespesas(despesas);
+    }
+
+    public void identificarUsuario(String nome, String sessao) {
+        this.lblUser.setText(nome + " - " + sessao);
+
+    }
+
+    public void carregarSaldo(double saldo) {
+        this.saldoAtual = saldo;
+        preencherCards();
+    }
+
+    public void carregarMetricas(ResumoMensal atual, ResumoMensal anterior) {
+        this.resumoAtual = atual;
+        this.resumoAnterior = anterior;
+        preencherCards();
+    }
+
+
+    // =====================================================================
+    // 5. NAVEGAÇÃO (trocar de tela e selecionar o botão do menu)
+    // =====================================================================
+
+    private void mostrarTela(JPanel tela) { 
         painelConteudo.removeAll();
         painelConteudo.add(tela, BorderLayout.CENTER);
         painelConteudo.revalidate();
         painelConteudo.repaint();
     }
 
+    // troca qual botão do menu fica "selecionado" (branco)
+    private void selecionarBotao(JButton btn) {
+        // o que estava selecionado volta pro visual normal, igual ao do criarBotaoMenu
+        botaoSelecionado.setOpaque(false);
+        botaoSelecionado.setContentAreaFilled(false);
+        botaoSelecionado.setBorderPainted(false);
+        botaoSelecionado.setForeground(new Color(203, 213, 225));
+        botaoSelecionado.setFont(new Font("SansSerif", Font.PLAIN, 12));
 
-    public TelaDashboard() { // configurações da janela, como altura, largura, titulo etc
-        setTitle("ERP Financeiro - Módulo Financeiro");
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        // o clicado ganha o visual do dashboard (branco, texto azul, negrito)
+        btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
+        btn.setBackground(Color.WHITE);
+        btn.setForeground(new Color(27, 54, 93));
+        btn.setFont(new Font("SansSerif", Font.BOLD, 12));
 
-
-        // 'paineis principais', painel lateral e o centro
-        add(criarSidebar(), BorderLayout.WEST);
-
-        painelConteudo = new JPanel(new BorderLayout());
-        add(painelConteudo, BorderLayout.CENTER);
-
-        telaDashboard = criarAreaPrincipal();   // cria uma vez só, senão o lblUser volta pra "Não logado" ao voltar pro dashboard
-        mostrarTela(telaDashboard);
+        botaoSelecionado = btn;
     }
 
+
+    // =====================================================================
+    // 6. CONSTRUÇÃO DA UI - MENU LATERAL
+    // =====================================================================
 
     // menu lateral
     private JPanel criarSidebar() {
@@ -104,8 +199,10 @@ public class TelaDashboard extends JFrame {
         botaoSelecionado = btnDashboard; // começa como o selecionado
 
         btnDashboard.addActionListener(e -> {
+            atualizarTela();
             mostrarTela(telaDashboard);
             selecionarBotao(btnDashboard);
+             
         });
 
         sidebar.add(btnDashboard);
@@ -167,6 +264,7 @@ public class TelaDashboard extends JFrame {
 
 
     }
+
     private JButton criarBotaoMenu(String texto) {
         JButton btn = new JButton(texto);
         btn.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -181,24 +279,11 @@ public class TelaDashboard extends JFrame {
         return btn;
     }
 
-    // troca qual botão do menu fica "selecionado" (branco)
-    private void selecionarBotao(JButton btn) {
-        // o que estava selecionado volta pro visual normal, igual ao do criarBotaoMenu
-        botaoSelecionado.setOpaque(false);
-        botaoSelecionado.setContentAreaFilled(false);
-        botaoSelecionado.setBorderPainted(false);
-        botaoSelecionado.setForeground(new Color(203, 213, 225));
-        botaoSelecionado.setFont(new Font("SansSerif", Font.PLAIN, 12));
 
-        // o clicado ganha o visual do dashboard (branco, texto azul, negrito)
-        btn.setOpaque(true);
-        btn.setContentAreaFilled(true);
-        btn.setBackground(Color.WHITE);
-        btn.setForeground(new Color(27, 54, 93));
-        btn.setFont(new Font("SansSerif", Font.BOLD, 12));
+    // =====================================================================
+    // 7. CONSTRUÇÃO DA UI - ÁREA PRINCIPAL DO DASHBOARD
+    // =====================================================================
 
-        botaoSelecionado = btn;
-    }
     // painel central
     private JPanel criarAreaPrincipal() {
         JPanel area = new JPanel(new BorderLayout());
@@ -243,20 +328,43 @@ public class TelaDashboard extends JFrame {
         return area;
     }
 
+    // ---------- cards ----------
+
     // cards de cima
     private JPanel criarCards() {
-        JPanel painel = new JPanel(new GridLayout(1, 4, 15, 0));
-        painel.setOpaque(false);
-        painel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
-
-        painel.add(cardMetrica("Saldo Atual", "R$ 284.750,00", "+4.2% vs. mês anterior", new Color(16, 185, 129)));
-        painel.add(cardMetrica("Receitas", "R$ 156.300,00", "+8.5% vs. mês anterior", new Color(16, 185, 129)));
-        painel.add(cardMetrica("Despesas", "R$ 98.420,00", "-2.1% vs. mês anterior", new Color(239, 68, 68)));
-        painel.add(cardMetrica("Fluxo de Caixa", "R$ 57.880,00", "+12.4% vs. mês anterior", new Color(16, 185, 129)));
-
-        return painel;
+        painelCards = new JPanel(new GridLayout(1, 4, 15, 0));
+        painelCards.setOpaque(false);
+        painelCards.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCards.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
+        preencherCards();
+        return painelCards;
     }
+
+    private void preencherCards() {
+    painelCards.removeAll();
+    
+    painelCards.add(cardMetrica("Saldo atual", formatarValor(saldoAtual), "aaa", VERDE));
+
+   if (resumoAtual != null && resumoAnterior != null) {
+    double receitaAtual = resumoAtual.getReceita();
+    double receitaAnterior = resumoAnterior.getReceita();
+    double despesaAtual = resumoAtual.getDespesa();
+    double despesaAnterior = resumoAnterior.getDespesa();
+
+        painelCards.add(cardMetrica("Receitas", formatarValor(receitaAtual), formatarVariacao(receitaAtual, receitaAnterior), corVariacao(receitaAtual, receitaAnterior, true)));
+        painelCards.add(cardMetrica("Despesas", formatarValor(despesaAtual), formatarVariacao(despesaAtual, despesaAnterior), corVariacao(despesaAtual, despesaAnterior, false)));
+        painelCards.add(cardMetrica("Fluxo de Caixa", formatarValor(fluxoAtual), formatarVariacao(fluxoAtual, fluxoAnterior), corVariacao(fluxoAtual, fluxoAnterior, true)));
+    } else {
+        // ainda sem dados suficientes
+        painelCards.add(cardMetrica("Receitas", "-", "sem dados", Color.GRAY));
+        painelCards.add(cardMetrica("Despesas", "-", "sem dados", Color.GRAY));
+        painelCards.add(cardMetrica("Fluxo de Caixa", "-", "sem dados", Color.GRAY));
+    }
+
+    painelCards.revalidate();
+    painelCards.repaint();
+}
+
     // metoxo auxiliar que vai criar os cards superiores
     private JPanel cardMetrica(String titulo, String valor, String variacao, Color corVariacao) {
         JPanel card = new JPanel(new GridLayout(3, 1));
@@ -282,6 +390,8 @@ public class TelaDashboard extends JFrame {
         card.add(var);
         return card;
     }
+
+    // ---------- gráficos ----------
 
     // graficos do SWING (Graphics2D)
     private JPanel criarGraficos() {
@@ -314,9 +424,11 @@ public class TelaDashboard extends JFrame {
         return painel;
     }
 
+    // ---------- tabela e alertas ----------
+
     // tabela e alertas
     private JPanel criarTabelaEAlertas() {
-        JPanel painel = new JPanel(new GridBagLayout());
+       /* */ JPanel painel = new JPanel(new GridBagLayout());
         painel.setOpaque(false);
         painel.setAlignmentX(Component.LEFT_ALIGNMENT);
         painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 260));
@@ -430,14 +542,37 @@ public class TelaDashboard extends JFrame {
         return painel;
     }
 
-    // classe para desenho do grafico de linhas (só SWING)
-    public void carregarResumoMensal(List<ResumoMensal> dados) {
-        painelGraficoLinha.atualizarDados(dados);
+
+    // =====================================================================
+    // 8. FORMATAÇÃO E APOIO VISUAL
+    // =====================================================================
+
+    private String formatarValor(double valor) {
+        return FORMATO_MOEDA.format(valor);
     }
 
+    private String formatarVariacao(double atual, double anterior) {
+        if (anterior == 0) {
+            return "sem base de comparação"; // evita divisão por zero
+        }  
+         double variacao = (atual - anterior) / anterior * 100;
+         return String.format(PT_BR, "%+.1f%% vs. mês anterior", variacao);
+    }
+
+    // se altaEhBoa for true, então coloca a cor verde, false vermelho, se for zero retorna cinza.
+    private Color corVariacao(double atual, double anterior, boolean altaEhBoa) { 
+        if (anterior == 0) {
+            return Color.GRAY; // evita divisão por zero
+        }
+        boolean subiu = atual >= anterior;
+        return (subiu == altaEhBoa) ? VERDE : VERMELHO;
+
+        }
 
 
-
+    // =====================================================================
+    // 9. CLASSE INTERNA - GRÁFICO DE PIZZA
+    // =====================================================================
 
     // classe para desenhar o grafico de pizza (só SWING)
     private static class PainelGraficoPizza extends JPanel {
@@ -621,14 +756,11 @@ public class TelaDashboard extends JFrame {
             );
         }
     }
-    public void identificarUsuario(String nome, String sessao) {
-        this.lblUser.setText(nome + " - " + sessao);
 
-    }
-    public void carregarDespesas(List<Despesas> despesas) {
-        this.despesas = despesas;
-        painelGraficoPizza.atualizarDespesas(despesas);
-    }
+
+    // =====================================================================
+    // 10. MAIN (teste)
+    // =====================================================================
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -649,6 +781,7 @@ public class TelaDashboard extends JFrame {
             controller.identificarUsuario();
             controller.carregarDespesas();
             controller.carregarResumoMensal();
+            controller.carregarSaldoAtual();
             tela.setVisible(true);
         });
     }
