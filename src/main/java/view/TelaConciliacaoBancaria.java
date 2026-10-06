@@ -7,27 +7,32 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JFrame;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
 import model.Conciliacao;
 
 public class TelaConciliacaoBancaria extends JPanel {
 
     private static final long serialVersionUID = 1L;
+
+    private JTable tabela;
+    private DefaultTableModel modeloTabela;
 
     private final Color AZUL_MENU = new Color(27, 54, 93);
     private final Color FUNDO = new Color(245, 247, 250);
@@ -43,9 +48,10 @@ public class TelaConciliacaoBancaria extends JPanel {
     public TelaConciliacaoBancaria() {
         setLayout(new BorderLayout());
 
-        criarDados();
-        add(criarAreaPrincipal(), BorderLayout.CENTER);
-    }
+                movimentacoes = Conciliacao.getMovimentacoes();
+
+                add(criarAreaPrincipal(), BorderLayout.CENTER);
+        }
 
     private JPanel criarSidebar() {
 
@@ -191,29 +197,60 @@ public class TelaConciliacaoBancaria extends JPanel {
     return conteudo;
     }
 
-    private JPanel criarFiltroDatas() {
+private JPanel criarFiltroDatas() {
 
     JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
     painel.setOpaque(false);
     painel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    JLabel lblDe = new JLabel("De:");
+    String[] opcoes = {
+        "Último Semestre",
+        "Último Ano",
+        "Últimos 30 dias"
+    };
 
-    JTextField txtDataInicial = new JTextField(8);
-    txtDataInicial.setText("01/10/2025");
+    JComboBox<String> filtro = new JComboBox<>(opcoes);
 
-    JLabel lblAte = new JLabel("Até:");
+    filtro.setPreferredSize(new Dimension(160, 28));
+    filtro.setBackground(Color.WHITE);
 
-    JTextField txtDataFinal = new JTextField(8);
-    txtDataFinal.setText("31/10/2025");
+    filtro.addActionListener(e -> {
 
-    JButton btnFiltrar = new JButton("Filtrar");
-    btnFiltrar.setBackground(BRANCO);
-    painel.add(lblDe);
-    painel.add(txtDataInicial);
-    painel.add(lblAte);
-    painel.add(txtDataFinal);
-    painel.add(btnFiltrar);
+        String opcaoSelecionada =
+                (String) filtro.getSelectedItem();
+
+        LocalDate hoje = LocalDate.now();
+        LocalDate dataInicial;
+
+        switch (opcaoSelecionada) {
+
+            case "Último Ano":
+                dataInicial = hoje.minusYears(1);
+                break;
+
+            case "Últimos 30 dias":
+                dataInicial = hoje.minusDays(30);
+                break;
+
+            case "Último Semestre":
+            default:
+                dataInicial = hoje.minusMonths(6);
+                break;
+        }
+
+        ArrayList<Conciliacao> dadosFiltrados =
+        Conciliacao.listarPorPeriodo(
+                dataInicial,
+                hoje
+        );
+
+        
+
+        atualizarTabela(dadosFiltrados);   
+
+});
+
+    painel.add(filtro);
 
     return painel;
 }
@@ -240,64 +277,50 @@ public class TelaConciliacaoBancaria extends JPanel {
     );
 
     // 1. CONCILIAÇÃO TOTAL
-    painel.add(
-            criarCard(
-                    "Conciliação Total",
-                    "R$ 51.870,00",
-                    "4 movimentações conciliadas",
-                    VERDE
-            )
-    );
+painel.add(criarCard(
+        "Conciliação Total",
+        String.valueOf(Conciliacao.getTotalConciliadas()),
+        "movimentações conciliadas",
+        VERDE
+));
 
-    // 2. DIFERENÇA BANCÁRIA
-    painel.add(
-            criarCard(
-                    "Diferença Bancária",
-                    "R$ 650,00",
-                    "requerem verificação",
-                    VERMELHO
-            )
-    );
+painel.add(criarCard(
+        "Diferença Bancária",
+        String.format("R$ %.2f", Conciliacao.getTotalDiferenca()),
+        "requerem verificação",
+        VERMELHO
+));
 
-    // 3. PENDENTES A PAGAR
-    painel.add(
-            criarCard(
-                    "Pendentes a Pagar",
-                    "2",
-                    "movimentações pendentes",
-                    LARANJA
-            )
-    );
+painel.add(criarCard(
+        "Pendentes a Pagar",
+        String.valueOf(Conciliacao.getPendentes(Conciliacao.PAGAR)),
+        "movimentações pendentes",
+        LARANJA
+));
 
-    // 4. PENDENTES A RECEBER
-    painel.add(
-            criarCard(
-                    "Pendentes a Receber",
-                    "1",
-                    "movimentação pendente",
-                    LARANJA
-            )
-    );
+painel.add(criarCard(
+        "Pendentes a Receber",
+        String.valueOf(Conciliacao.getPendentes(Conciliacao.RECEBER)),
+        "movimentações pendentes",
+        LARANJA
+));
 
-    // 5. ATRASO A RECEBER
-    painel.add(
-            criarCard(
-                    "Atraso a Receber",
-                    "0",
-                    "sem atrasos",
-                    VERDE
-            )
-    );
+int atrasadosReceber = Conciliacao.getAtrasados(Conciliacao.RECEBER);
+int atrasadosPagar = Conciliacao.getAtrasados(Conciliacao.PAGAR);
 
-    // 6. ATRASO A PAGAR
-    painel.add(
-            criarCard(
-                    "Atraso a Pagar",
-                    "0",
-                    "sem atrasos",
-                    VERDE
-            )
-    );
+painel.add(criarCard(
+        "Atraso a Receber",
+        String.valueOf(atrasadosReceber),
+        atrasadosReceber == 0 ? "sem atrasos" : "contas atrasadas",
+        atrasadosReceber == 0 ? VERDE : VERMELHO
+));
+
+painel.add(criarCard(
+        "Atraso a Pagar",
+        String.valueOf(atrasadosPagar),
+        atrasadosPagar == 0 ? "sem atrasos" : "contas vencidas",
+        atrasadosPagar == 0 ? VERDE : VERMELHO
+));
 
     return painel;
 }
@@ -441,11 +464,11 @@ public class TelaConciliacaoBancaria extends JPanel {
                 "Status"
         };
 
-        DefaultTableModel model =
-                new DefaultTableModel(
-                        colunas,
-                        0
-                ) {
+   modeloTabela =
+        new DefaultTableModel(
+                colunas,
+                0
+        ) {
 
                     @Override
                     public boolean isCellEditable(
@@ -466,15 +489,13 @@ public class TelaConciliacaoBancaria extends JPanel {
 
             } else {
 
-                diferenca = String.format(
-                        "R$ %,.2f",
-                        m.getDiferenca()
-                );
-            }
+              diferenca = formatarMoeda(m.getDiferenca());
 
-            model.addRow(
+            modeloTabela.addRow(
                     new Object[]{
-                        m.getData(),
+                        m.getData().format(
+                        java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                        ),
                         m.getDescricaoExtrato(),
                         m.getValorExtrato(),
                         m.getDescricaoSistema(),
@@ -485,10 +506,27 @@ public class TelaConciliacaoBancaria extends JPanel {
             );
         }
 
-        JTable tabela =
-                new JTable(model);
+        tabela = new JTable(modeloTabela);
+
+        DefaultTableCellRenderer centro =
+        new DefaultTableCellRenderer();
+
+        centro.setHorizontalAlignment(
+        SwingConstants.CENTER
+        );
+
+        tabela.getColumnModel().getColumn(0).setCellRenderer(centro);
+        tabela.getColumnModel().getColumn(1).setCellRenderer(centro);
+        tabela.getColumnModel().getColumn(2).setCellRenderer(criarRendererMoeda());
+        tabela.getColumnModel().getColumn(3).setCellRenderer(centro);
+        tabela.getColumnModel().getColumn(4).setCellRenderer(criarRendererMoeda());
 
         tabela.setRowHeight(30);
+        tabela.setIntercellSpacing(new Dimension(0, 1));
+        tabela.setSelectionBackground(new Color(239, 246, 255));
+        tabela.setSelectionForeground(TEXTO);
+        tabela.setShowHorizontalLines(true);
+        tabela.setShowVerticalLines(false);
         tabela.setShowGrid(false);
         tabela.setFont(
                 new Font(
@@ -498,8 +536,6 @@ public class TelaConciliacaoBancaria extends JPanel {
                 )
         );
 
-        // IMPEDIR QUE AS COLUNAS SEJAM ARRASTADAS
-        tabela.getTableHeader().setReorderingAllowed(false);
 
         tabela.setForeground(TEXTO);
 
@@ -523,23 +559,8 @@ public class TelaConciliacaoBancaria extends JPanel {
                         30
                 )
         );
-        DefaultTableCellRenderer centro =
-                new DefaultTableCellRenderer();
-
-        centro.setHorizontalAlignment(
-                SwingConstants.CENTER
-        );
-
-        tabela.getColumnModel()
-                .getColumn(0)
-                .setCellRenderer(centro);
-        tabela.getColumnModel()
-                .getColumn(2)
-                .setCellRenderer(centro);
-
-        tabela.getColumnModel()
-                .getColumn(4)
-                .setCellRenderer(centro);
+        tabela.getTableHeader().setReorderingAllowed(false);
+        tabela.getTableHeader().setOpaque(true);
 
         tabela.getColumnModel()
                 .getColumn(5)
@@ -704,93 +725,101 @@ scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, alturaTabela));
 
         return painel;
     }
-    private void criarDados() {
 
-    movimentacoes = new ArrayList<>();
-
-    movimentacoes.add(
-        new Conciliacao(
-            "05/10/2025",
-            "Recebimento Tech Solutions",
-            15000.00,
-            "Recebimento Tech Solutions",
-            15350.00,
-            -350.00,
-            "Divergente"
-        )
-    );
-
-    movimentacoes.add(
-        new Conciliacao(
-            "06/10/2025",
-            "Pgto AWS Cloud Server",
-            4850.00,
-            "Pgto AWS Cloud Server",
-            4500.00,
-            350.00,
-            "Pendente"
-        )
-    );
-
-    movimentacoes.add(
-        new Conciliacao(
-            "08/10/2025",
-            "Recebimento Metalúrgica",
-            28450.00,
-            "Recebimento Metalúrgica",
-            28450.00,
-            0.00,
-            "Conciliado"
-        )
-    );
-
-    movimentacoes.add(
-        new Conciliacao(
-            "09/10/2025",
-            "Pgto Aluguel Comercial",
-            12800.00,
-            "Pgto Aluguel Comercial",
-            12550.00,
-            250.00,
-            "Pendente"
-        )
-    );
-
-    movimentacoes.add(
-        new Conciliacao(
-            "10/10/2025",
-            "Pgto Folha de Colaboradores",
-            4800.00,
-            "Pgto Folha de Colaboradores",
-            4800.00,
-            0.00,
-            "Conciliado"
-        )
-    );
-
-    movimentacoes.add(
-        new Conciliacao(
-            "12/10/2025",
-            "Recebimento Vânia Vida",
-            3420.00,
-            "Recebimento Vânia Vida",
-            3420.00,
-            0.00,
-            "Conciliado"
-        )
-    );
-
-    movimentacoes.add(
-        new Conciliacao(
-            "14/10/2025",
-            "Recebimento Vânia Vida",
-            8500.00,
-            "Recebimento Vânia Vida",
-            8450.00,
-            50.00,
-            "Pendente"
-        )
-    );
+    private String formatarMoeda(double valor) {
+    return String.format(
+            "R$ %,.2f",
+            valor
+    ).replace(",", "X")
+     .replace(".", ",")
+     .replace("X", ".");
 }
 
+private DefaultTableCellRenderer criarRendererCentralizado() {
+    DefaultTableCellRenderer renderer =
+            new DefaultTableCellRenderer();
+
+    renderer.setHorizontalAlignment(
+            SwingConstants.CENTER
+    );
+
+    return renderer;
+}
+
+private DefaultTableCellRenderer criarRendererMoeda() {
+    DefaultTableCellRenderer renderer =
+            new DefaultTableCellRenderer() {
+
+                @Override
+                public Component getTableCellRendererComponent(
+                        JTable table,
+                        Object value,
+                        boolean isSelected,
+                        boolean hasFocus,
+                        int row,
+                        int column
+                ) {
+                    JLabel label =
+                            (JLabel) super.getTableCellRendererComponent(
+                                    table,
+                                    value,
+                                    isSelected,
+                                    hasFocus,
+                                    row,
+                                    column
+                            );
+
+                    label.setHorizontalAlignment(
+                            SwingConstants.RIGHT
+                    );
+
+                    if (value instanceof Number) {
+                        label.setText(
+                                formatarMoeda(
+                                        ((Number) value).doubleValue()
+                                )
+                        );
+                    }
+
+                    return label;
+                }
+            };
+
+    return renderer;
+}
+
+
+private void atualizarTabela(ArrayList<Conciliacao> dados) {
+
+    modeloTabela.setRowCount(0);
+
+    DateTimeFormatter formato =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    for (Conciliacao m : dados) {
+
+        String diferenca;
+
+        if (m.getDiferenca() == 0) {
+            diferenca = "R$ 0,00";
+        } else {
+                diferenca = formatarMoeda(m.getDiferenca());
+        }
+
+        modeloTabela.addRow(
+                new Object[]{
+                        m.getData().format(formato),
+                        m.getDescricaoExtrato(),
+                        m.getValorExtrato(),
+                        m.getDescricaoSistema(),
+                        m.getValorSistema(),
+                        diferenca,
+                        m.getStatus()
+                }
+        );
+    }
+
+    tabela.revalidate();
+    tabela.repaint();
+}
 }

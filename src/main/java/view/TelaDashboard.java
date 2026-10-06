@@ -11,13 +11,11 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.RenderingHints; 
-
+import java.awt.RenderingHints;
 import java.text.NumberFormat;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,10 +32,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import model.Despesas;
-import model.Usuario;
-import model.ResumoMensal;
 import controller.DashboardController;
+import model.Despesas;
+import model.ResumoMensal;
+import model.Usuario;
 
 public class TelaDashboard extends JFrame {
 
