@@ -9,109 +9,35 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import java.util.List;
+import model.Fiscal;
+import java.util.ArrayList;
+import java.util.Comparator;
 
-public class TelaFiscal extends JFrame {
+public class TelaFiscal extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    public TelaFiscal() { // configurações da janela, como altura, largura, titulo etc
-        setTitle("ERP Financeiro - Módulo Financeiro"); 
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+    private DefaultTableModel tableModel;
+    private JPanel listaAlertas;
+
+    public TelaFiscal() {
         setLayout(new BorderLayout());
-
-        // 'paineis principais', painel lateral e o centro
-        add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
+        carregarDados();
     }
 
-    // menu lateral
-    private JPanel criarSidebar() {
-        JPanel sidebar = new JPanel();
-        sidebar.setBackground(new Color(27, 54, 93)); // ao se colocar o nome do 'painel' com setBackground(new Color) é possível colocar cores
-        sidebar.setPreferredSize(new Dimension(220, 0)); // e o mesmo vale pros demais sets
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS)); // serve pra organizar as caixas 'empilhadas' para o eixo Y
-        sidebar.setBorder(new EmptyBorder(20, 15, 20, 15));
-
-        // Logo
-        JLabel lblLogo = new JLabel("<html><b>ERP Finance</b><br/><small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"); // da pra colocar conf html ao se criar labels 
-        lblLogo.setForeground(Color.WHITE); //seta as cores das coisas do primeiro plano( tipo texto) para branco
-        lblLogo.setFont(new Font("SansSerif", Font.PLAIN, 15)); //familia da fonte, o .PLAIN serve pra nn deixar o texto ficar negrito ou italico se houver algo q o altere
-        lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT); //alinha o texto pra esquerda
-        sidebar.add(lblLogo);
-        sidebar.add(Box.createVerticalStrut(30)); // cria um espaçamento invisivel
-
-        
-        //os demais botoes serao criados por metodo auxiliar
-        JButton btnDashboard = criarBotaoMenu("Dashboard");
-        sidebar.add(btnDashboard);
-        sidebar.add(Box.createVerticalStrut(5));
-        
-        JButton btnContasPagar = criarBotaoMenu("Contas a Pagar e Receber");
-        sidebar.add(btnContasPagar);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnFluxoCaixa = criarBotaoMenu("Fluxo de Caixa");
-        sidebar.add(btnFluxoCaixa);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnConciliacao = criarBotaoMenu("Conciliação Bancária");
-        sidebar.add(btnConciliacao);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnRelatorios = criarBotaoMenu("Relatórios");
-        sidebar.add(btnRelatorios);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        // aqui é o botao selecionado, que no caso dessa página é o fiscal
-        JButton btnFiscal = new JButton("Fiscal");
-        btnFiscal.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnFiscal.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        btnFiscal.setFocusPainted(false);
-        btnFiscal.setHorizontalAlignment(SwingConstants.LEFT);
-        btnFiscal.setBackground(Color.WHITE);
-        btnFiscal.setForeground(new Color(27, 54, 93));
-        btnFiscal.setFont(new Font("SansSerif", Font.BOLD, 12));
-        sidebar.add(btnFiscal);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        
-        return sidebar;
-        
-
-    }
-    private JButton criarBotaoMenu(String texto) {
-        JButton btn = new JButton(texto);
-        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        btn.setFocusPainted(false);
-        btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setOpaque(false);
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
-        btn.setForeground(new Color(203, 213, 225));
-        btn.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        return btn;
-    }
-
-    
     // painel central
     private JPanel criarAreaPrincipal() {
         JPanel area = new JPanel(new BorderLayout());
@@ -122,7 +48,7 @@ public class TelaFiscal extends JFrame {
         header.setOpaque(false); //deixa transparente
         header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
-        JLabel lblUser = new JLabel("Jefferson Riper (Administrador)");
+        JLabel lblUser = new JLabel("Jefferson - Administrador");
         lblUser.setFont(new Font("SansSerif", Font.BOLD, 12));
 
         header.add(lblUser, BorderLayout.EAST);
@@ -171,8 +97,8 @@ public class TelaFiscal extends JFrame {
         JPanel card = new JPanel(new GridLayout(3, 1));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-            new EmptyBorder(10, 12, 10, 12)
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                new EmptyBorder(10, 12, 10, 12)
         ));
 
         JLabel t = new JLabel(titulo);
@@ -204,7 +130,7 @@ public class TelaFiscal extends JFrame {
         gbc.insets = new Insets(0, 0, 0, 15);
         painel.add(criarPainelTabela(), gbc);
 
-        // alerta 
+        // alerta
         gbc.gridx = 1;
         gbc.weightx = 0.3;
         gbc.insets = new Insets(0, 0, 0, 0);
@@ -217,8 +143,8 @@ public class TelaFiscal extends JFrame {
         JPanel painel = new JPanel(new BorderLayout());
         painel.setBackground(Color.WHITE);
         painel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-            new EmptyBorder(12, 12, 12, 12)
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                new EmptyBorder(12, 12, 12, 12)
         ));
 
         JLabel title = new JLabel("Próximas Contas a Pagar");
@@ -227,23 +153,13 @@ public class TelaFiscal extends JFrame {
         painel.add(title, BorderLayout.NORTH);
 
         String[] colunas = {"Imposto", "Competência", "Vencimento", "Base de Cálculo", "Alíquota", "Valor", "Status"};
-        Object[][] dados = {
-            {"IRPJ", "09/2025", "25/10/2025", "R$ 156.300,00", "15.0%", "R$ 23.445,00", "Pago"},
-            {"CSLL", "09/2025", "25/10/2025", "R$ 156.300,00", "9.0%", "R$ 14.067,00", "Pago"},
-            {"PIS", "09/2025", "25/10/2025", "R$ 156.300,00", "0.65%", "R$ 1.015,95", "Pago"},
-            {"COFINS", "09/2025", "25/10/2025", "R$ 156.300,00", "3.0%", "R$ 4.689,00", "Pago"},
-            {"ISS", "09/2025", "10/10/2025", "R$ 85.000,00", "5.0%", "R$ 4.250,00", "Pago"},
-            {"ICMS", "09/2025", "20/10/2025", "R$ 71.300,00", "12.0%", "R$ 8.556,00", "Pendente"},
-            {"IRRF (S/Serviços)", "09/2025", "20/10/2025", "R$ 12.000,00", "1.5%", "R$ 180,00", "Pendente"},
-            {"GPS (INSS Patronal)", "08/2025", "20/09/2025", "R$ 45.200,00", "20.0%", "R$ 9.040,00", "Vencido"}
-        };
-
-        DefaultTableModel model = new DefaultTableModel(dados, colunas) {
+        
+        tableModel = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int col) { return false; }
         };
 
-        JTable table = new JTable(model);
+        JTable table = new JTable(tableModel);
         table.setRowHeight(30);
         table.setShowGrid(false);
 
@@ -277,62 +193,121 @@ public class TelaFiscal extends JFrame {
     }
 
     private JPanel criarPainelAlertas() {
-        JPanel painel = new JPanel();
-        painel.setLayout(new BoxLayout(painel, BoxLayout.Y_AXIS));
+        JPanel painel = new JPanel(new BorderLayout());
         painel.setBackground(Color.WHITE);
         painel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-            new EmptyBorder(12, 12, 12, 12)
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                new EmptyBorder(12, 12, 12, 12)
         ));
 
         JLabel title = new JLabel("Alertas de Vencimento");
         title.setFont(new Font("SansSerif", Font.BOLD, 13));
+        title.setBorder(new EmptyBorder(0, 0, 8, 0));
+        painel.add(title, BorderLayout.NORTH);
 
-        JPanel card1 = new JPanel(new BorderLayout());
-        card1.setBackground(new Color(254, 242, 242));
-        card1.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 4, 0, 0, new Color(239, 68, 68)),
-            new EmptyBorder(8, 8, 8, 8)
-        ));
-        card1.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        listaAlertas = new JPanel();
+        listaAlertas.setLayout(new BoxLayout(listaAlertas, BoxLayout.Y_AXIS));
+        listaAlertas.setOpaque(false);
 
-        JLabel msg1 = new JLabel("<html><b>ICMS em Atraso</b><br/><small style='color:gray;'>ICMS sobre vendas de insumos vencido em 20/10. Sujeito a multas.</small><br/><b style=\"color: #961006;\">ALTA</b></html>");
-        card1.add(msg1, BorderLayout.CENTER);
-        
-        JPanel card2 = new JPanel(new BorderLayout());
-        card2.setBackground(new Color(254, 242, 242));
-        card2.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 4, 0, 0, new Color(239, 151, 68)),
-            new EmptyBorder(8, 8, 8, 8)
-        ));
-        card2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
-        
-        JLabel msg2 = new JLabel("<html><b>Geração DAS Simples</b><br/><small style='color:gray;'>Vencimento do DAS unificado dia 25/10. Valor estimado: R$ 14.280,00.</small><br/><b style=\"color: #eb7b0c;\">MÉDIA</b></html>");
-        card2.add(msg2, BorderLayout.CENTER);
-        
-        JPanel card3 = new JPanel(new BorderLayout());
-        card3.setBackground(new Color(254, 254, 242));
-        card3.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 4, 0, 0, new Color(239, 228, 68)),
-            new EmptyBorder(8, 8, 8, 8)
-        ));
-        card3.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
-        
-        JLabel msg3 = new JLabel("<html><b>EFD Reinf pendente</b><br/><small style='color:gray;'>Guia de retenções de terceiros deve ser transmitida até dia 30/10.</small><br/><b style=\"color: #ffcc00;\">BAIXA</b></html>");
-        card3.add(msg3, BorderLayout.CENTER);
-        
-        painel.add(title);
-        painel.add(Box.createVerticalStrut(12));
-        painel.add(card1);
-        painel.add(card2);
-        painel.add(card3);
-        
+        JScrollPane sp = new JScrollPane(listaAlertas);
+        sp.setBorder(null);
+        sp.getViewport().setBackground(Color.WHITE);
+        painel.add(sp, BorderLayout.CENTER);
+
         return painel;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new TelaFiscal().setVisible(true);
-        });
+    private void atualizarAlertas(List<Fiscal> lista) {
+        listaAlertas.removeAll();
+
+        // do vencimento mais antigo para o mais novo (vencidos primeiro)
+        List<Fiscal> ordenada = new ArrayList<>(lista);
+        ordenada.sort(Comparator.comparing(Fiscal::getDataVencimento));
+
+        boolean temAlerta = false;
+        for (Fiscal f : ordenada) {
+            String prioridade = f.getPrioridade();
+            if (prioridade == null) continue; // pago não alerta
+
+            listaAlertas.add(criarCardAlerta(f, prioridade));
+            listaAlertas.add(Box.createVerticalStrut(6));
+            temAlerta = true;
+        }
+
+        if (!temAlerta) {
+            listaAlertas.add(new JLabel("Nenhum imposto pendente."));
+        }
+
+        listaAlertas.revalidate();
+        listaAlertas.repaint();
     }
+
+    private JPanel criarCardAlerta(Fiscal f, String prioridade) {
+        Color corBorda;
+        Color corFundo;
+        String corTexto;
+
+        switch (prioridade) {
+            case "ALTA":
+                corBorda = new Color(239, 68, 68);
+                corFundo = new Color(254, 242, 242);
+                corTexto = "#961006";
+                break;
+            case "MÉDIA":
+                corBorda = new Color(239, 151, 68);
+                corFundo = new Color(254, 242, 242);
+                corTexto = "#eb7b0c";
+                break;
+            default: // BAIXA
+                corBorda = new Color(239, 228, 68);
+                corFundo = new Color(254, 254, 242);
+                corTexto = "#ffcc00";
+                break;
+        }
+
+        long dias = f.getDiasParaVencimento();
+        String titulo = f.getTipoImposto() + (dias < 0 ? " em Atraso" : "");
+        String prazo;
+        if (dias < 0) {
+            prazo = "Vencido há " + (-dias) + " dia(s), em " + f.getVencimento() + ".";
+        } else if (dias == 0) {
+            prazo = "Vence hoje (" + f.getVencimento() + ").";
+        } else {
+            prazo = "Vence em " + dias + " dia(s), em " + f.getVencimento() + ".";
+        }
+
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(corFundo);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 4, 0, 0, corBorda),
+                new EmptyBorder(8, 8, 8, 8)
+        ));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel msg = new JLabel("<html><b>" + titulo + "</b><br/>"
+                + "<small style='color:gray;'>" + prazo + " Valor: R$ " + f.getValor() + "</small><br/>"
+                + "<b style=\"color: " + corTexto + ";\">" + prioridade + "</b></html>");
+        card.add(msg, BorderLayout.CENTER);
+
+        return card;
+    }
+
+    public void carregarDados() {
+        tableModel.setRowCount(0); // limpa antes de preencher
+        List<Fiscal> lista = Fiscal.listarTodos();
+        for (Fiscal f : lista) {
+            tableModel.addRow(new Object[] {
+                f.getTipoImposto(),
+                f.getCompetencia(),
+                f.getVencimento(),
+                f.getBaseCalculo(),
+                f.getAliquota(),
+                f.getValor(),
+                f.getStatus()
+            });
+        }
+        atualizarAlertas(lista);
+    }
+
 }
