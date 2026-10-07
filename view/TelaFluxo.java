@@ -1,202 +1,221 @@
 package view;
 
+import model.Contas;
 import model.Fluxo;
 
-import javax.swing.*;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.awt.geom.Path2D;
-import java.util.ArrayList;
 
-public class TelaFluxo extends JFrame {
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+
+public class TelaFluxo extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private final Color COR_MENU = new Color(27, 54, 93);
-    private final Color COR_FUNDO = new Color(245, 247, 250);
-    private final Color COR_BORDA = new Color(226, 232, 240);
-    private final Color COR_TEXTO = new Color(30, 38, 52);
-    private final Color COR_CINZA = new Color(105, 114, 128);
-    private final Color COR_AZUL = new Color(37, 99, 235);
-    private final Color COR_VERDE = new Color(16, 185, 129);
-    private final Color COR_VERMELHO = new Color(239, 68, 68);
+    private static final Color COR_MENU = new Color(27, 54, 93);
+    private static final Color COR_FUNDO = new Color(245, 247, 250);
+    private static final Color COR_BORDA = new Color(226, 232, 240);
+    private static final Color COR_TEXTO = new Color(30, 38, 52);
+    private static final Color COR_CINZA = new Color(105, 114, 128);
+    private static final Color COR_AZUL = new Color(37, 99, 235);
+    private static final Color COR_VERDE = new Color(16, 185, 129);
+    private static final Color COR_VERMELHO = new Color(239, 68, 68);
 
-    private ArrayList<Fluxo> movimentacoes;
+    private static final DateTimeFormatter FORMATO_DATA =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private static final NumberFormat FORMATO_MOEDA =
+            NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+
+    private static final int ALTURA_LINHA = 30;
+    private static final int ALTURA_CABECALHO = 30;
+    private static final int ESPACO = 15;
+
+    private final ArrayList<Fluxo> movimentacoes = new ArrayList<>();
+
+    private ArrayList<Fluxo> movimentacoesFiltradas =
+            new ArrayList<>();
+
+    private JTextField txtDataInicial;
+    private JTextField txtDataFinal;
+
+    private JPanel painelCards;
+    private JPanel painelGrafico;
+    private JPanel painelTabela;
 
     public TelaFluxo() {
 
-        setTitle("ERP Financeiro - Módulo Financeiro");
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
+        setBackground(COR_FUNDO);
 
-        criarDados();
-        add(criarSidebar(), BorderLayout.WEST);
-        add(criarAreaPrincipal(), BorderLayout.CENTER);
+        carregarMovimentacoes();
+        definirPeriodoInicial();
+        aplicarFiltro();
+        atualizarTela();
     }
 
+    private void carregarMovimentacoes() {
 
-    private JPanel criarSidebar() {
+        movimentacoes.clear();
 
-        JPanel sidebar = new JPanel();
-
-        sidebar.setBackground(COR_MENU);
-        sidebar.setPreferredSize(new Dimension(220, 0));
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBorder(new EmptyBorder(20, 15, 20, 15));
-
-        JLabel lblLogo = new JLabel(
-                "<html><b>ERP Finance</b><br/>" +
-                "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"
+        adicionarContasConcluidas(
+                Contas.listar(Contas.RECEBER, true),
+                true
         );
 
-        lblLogo.setForeground(Color.WHITE);
-        lblLogo.setFont(new Font("SansSerif", Font.PLAIN, 15));
-        lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        sidebar.add(lblLogo);
-        sidebar.add(Box.createVerticalStrut(30));
-
-
-        JButton btnDashboard = criarBotaoMenu("Dashboard");
-
-        sidebar.add(btnDashboard);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnContasPagar =
-                criarBotaoMenu("Contas a Pagar e Receber");
-
-        sidebar.add(btnContasPagar);
-        sidebar.add(Box.createVerticalStrut(5));
-
-
-        JButton btnFluxoCaixa =
-                new JButton("Fluxo de Caixa");
-
-        btnFluxoCaixa.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnFluxoCaixa.setMaximumSize(
-                new Dimension(Integer.MAX_VALUE, 38)
-        );
-        btnFluxoCaixa.setFocusPainted(false);
-        btnFluxoCaixa.setHorizontalAlignment(
-                SwingConstants.LEFT
-        );
-        btnFluxoCaixa.setBackground(Color.WHITE);
-        btnFluxoCaixa.setForeground(COR_MENU);
-        btnFluxoCaixa.setFont(
-                new Font("SansSerif", Font.BOLD, 12)
+        adicionarContasConcluidas(
+                Contas.listar(Contas.PAGAR, true),
+                false
         );
 
-        sidebar.add(btnFluxoCaixa);
-        sidebar.add(Box.createVerticalStrut(5));
+        movimentacoes.sort(
+                Comparator.comparing(Fluxo::getData)
+        );
 
-        JButton btnConciliacao =
-                criarBotaoMenu("Conciliação Bancária");
-
-        sidebar.add(btnConciliacao);
-        sidebar.add(Box.createVerticalStrut(5));
-
-
-        JButton btnRelatorios =
-                criarBotaoMenu("Relatórios");
-
-        sidebar.add(btnRelatorios);
-        sidebar.add(Box.createVerticalStrut(5));
-
-
-        JButton btnFiscal =
-                criarBotaoMenu("Fiscal");
-
-        sidebar.add(btnFiscal);
-        sidebar.add(Box.createVerticalStrut(5));
-
-
-        return sidebar;
+        recalcularSaldos();
     }
 
+    private void adicionarContasConcluidas(
+            ArrayList<Contas> contas,
+            boolean entrada) {
 
-    private JButton criarBotaoMenu(String texto) {
+        for (Contas conta : contas) {
 
-        JButton btn = new JButton(texto);
+            double valor = entrada
+                    ? conta.getValor()
+                    : -conta.getValor();
 
-        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btn.setMaximumSize(
-                new Dimension(Integer.MAX_VALUE, 38)
-        );
-        btn.setFocusPainted(false);
-        btn.setHorizontalAlignment(
-                SwingConstants.LEFT
-        );
+            String tipo = entrada
+                    ? "Entrada"
+                    : "Saída";
 
-        btn.setOpaque(false);
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
+            String categoria = entrada
+                    ? "Contas a Receber"
+                    : "Contas a Pagar";
 
-        btn.setForeground(
-                new Color(203, 213, 225)
-        );
+            movimentacoes.add(
+                    new Fluxo(
+                            conta.getDataVencimento(),
+                            conta.getDescricao(),
+                            tipo,
+                            categoria,
+                            valor,
+                            0
+                    )
+            );
+        }
+    }
 
-        btn.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.PLAIN,
-                        12
+    private void recalcularSaldos() {
+
+        double saldo = 0;
+
+        for (Fluxo fluxo : movimentacoes) {
+
+            saldo += fluxo.getValor();
+
+            fluxo.setSaldo(saldo);
+        }
+    }
+
+    private void definirPeriodoInicial() {
+
+        if (movimentacoes.isEmpty()) {
+            return;
+        }
+
+        LocalDate menor =
+                movimentacoes.get(0).getData();
+
+        LocalDate maior =
+                movimentacoes.get(
+                        movimentacoes.size() - 1
+                ).getData();
+
+        txtDataInicial = new JTextField(8);
+        txtDataFinal = new JTextField(8);
+
+        txtDataInicial.setText(
+                FORMATO_DATA.format(
+                        menor.withDayOfMonth(1)
                 )
         );
 
-        return btn;
+        txtDataFinal.setText(
+                FORMATO_DATA.format(
+                        maior.withDayOfMonth(
+                                maior.lengthOfMonth()
+                        )
+                )
+        );
     }
 
+    private void atualizarTela() {
+
+        removeAll();
+
+        add(
+                criarAreaPrincipal(),
+                BorderLayout.CENTER
+        );
+
+        revalidate();
+        repaint();
+    }
 
     private JPanel criarAreaPrincipal() {
 
-        JPanel area = new JPanel(
-                new BorderLayout()
-        );
+        JPanel area =
+                new JPanel(new BorderLayout());
 
         area.setBackground(COR_FUNDO);
 
-        JPanel header = new JPanel(
-                new BorderLayout()
-        );
-
-        header.setOpaque(false);
-
-        header.setBorder(
-                new EmptyBorder(
-                        15,
-                        25,
-                        15,
-                        25
-                )
-        );
-
-
-        JLabel lblUser =
-                new JLabel(
-                        "Jefferson Riper (Administrador)"
-                );
-
-        lblUser.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.BOLD,
-                        12
-                )
-        );
-
-
-        header.add(
-                lblUser,
-                BorderLayout.EAST
-        );
-
-
         area.add(
-                header,
+                criarHeader(),
                 BorderLayout.NORTH
         );
 
@@ -220,49 +239,1160 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-        JLabel lblTitulo =
-                new JLabel(
-                        "<html>" +
-                        "<h2 style='margin:0;'>Fluxo de Caixa</h2>" +
-                        "<span style='color:gray;'>" +
-                        "Análise de entradas, saídas e saldos de caixa" +
-                        "</span>" +
-                        "</html>"
-                );
+        JLabel titulo = new JLabel(
+                "<html><h2 style='margin:0;'>Fluxo de Caixa</h2>"
+                + "<span style='color:gray;'>"
+                + "Análise de entradas, saídas e saldos de caixa"
+                + "</span></html>"
+        );
 
-        lblTitulo.setAlignmentX(
+        titulo.setAlignmentX(
                 Component.LEFT_ALIGNMENT
         );
 
-
-        conteudo.add(lblTitulo);
-
-        conteudo.add(
-                Box.createVerticalStrut(15)
-        );
-        conteudo.add(criarCards());
+        conteudo.add(titulo);
 
         conteudo.add(
-                Box.createVerticalStrut(15)
+                Box.createVerticalStrut(ESPACO)
         );
 
-        conteudo.add(criarGrafico());
+        conteudo.add(criarFiltroDatas());
 
         conteudo.add(
-                Box.createVerticalStrut(15)
+                Box.createVerticalStrut(ESPACO)
         );
 
-        conteudo.add(criarTabela());
+        painelCards = criarCards();
 
+        painelCards.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        conteudo.add(painelCards);
+
+        conteudo.add(
+                Box.createVerticalStrut(ESPACO)
+        );
+
+        painelGrafico = criarGrafico();
+
+        painelGrafico.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        conteudo.add(painelGrafico);
+
+        conteudo.add(
+                Box.createVerticalStrut(ESPACO)
+        );
+
+        painelTabela = criarTabela();
+
+        painelTabela.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        conteudo.add(painelTabela);
 
         area.add(
                 conteudo,
                 BorderLayout.CENTER
         );
 
-
         return area;
     }
+
+    private JPanel criarHeader() {
+
+        JPanel header =
+                new JPanel(new BorderLayout());
+
+        header.setOpaque(false);
+
+        header.setBorder(
+                new EmptyBorder(
+                        15,
+                        25,
+                        15,
+                        25
+                )
+        );
+
+        JLabel usuario =
+                new JLabel(
+                        "Jefferson - Administrador"
+                );
+
+        usuario.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        header.add(
+                usuario,
+                BorderLayout.EAST
+        );
+
+        return header;
+    }
+
+    /*
+     * FILTRO DE DATAS
+     */
+
+    private JPanel criarFiltroDatas() {
+
+        JPanel painel =
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.LEFT,
+                                8,
+                                0
+                        )
+                );
+
+        painel.setOpaque(false);
+
+        painel.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        JLabel lblDe =
+                new JLabel("De:");
+
+        JLabel lblAte =
+                new JLabel("Até:");
+
+        if (txtDataInicial == null) {
+
+            txtDataInicial =
+                    new JTextField(8);
+
+            txtDataInicial.setText(
+                    FORMATO_DATA.format(
+                            LocalDate.now()
+                                    .withDayOfMonth(1)
+                    )
+            );
+        }
+
+        if (txtDataFinal == null) {
+
+            txtDataFinal =
+                    new JTextField(8);
+
+            txtDataFinal.setText(
+                    FORMATO_DATA.format(
+                            LocalDate.now()
+                    )
+            );
+        }
+
+        configurarCampoData(
+                txtDataInicial
+        );
+
+        configurarCampoData(
+                txtDataFinal
+        );
+
+        JButton btnFiltrar =
+                new JButton("Filtrar");
+
+        btnFiltrar.setBackground(
+                Color.WHITE
+        );
+
+        btnFiltrar.setForeground(
+                COR_TEXTO
+        );
+
+        btnFiltrar.setFocusPainted(false);
+
+        btnFiltrar.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                COR_BORDA
+                        ),
+                        new EmptyBorder(
+                                6,
+                                14,
+                                6,
+                                14
+                        )
+                )
+        );
+
+        btnFiltrar.addActionListener(
+                e -> filtrarPorPeriodo()
+        );
+
+        painel.add(lblDe);
+        painel.add(txtDataInicial);
+        painel.add(lblAte);
+        painel.add(txtDataFinal);
+        painel.add(btnFiltrar);
+
+        return painel;
+    }
+
+    /*
+     * Configura o campo para abrir o calendário
+     * quando o usuário clicar nele.
+     */
+    private void configurarCampoData(
+            JTextField campo) {
+
+        campo.setEditable(false);
+
+        campo.setCursor(
+                new java.awt.Cursor(
+                        java.awt.Cursor.HAND_CURSOR
+                )
+        );
+
+        campo.setBackground(
+                Color.WHITE
+        );
+
+        campo.setForeground(
+                COR_TEXTO
+        );
+
+        campo.setHorizontalAlignment(
+                SwingConstants.CENTER
+        );
+
+        campo.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                COR_BORDA
+                        ),
+                        new EmptyBorder(
+                                6,
+                                8,
+                                6,
+                                8
+                        )
+                )
+        );
+
+        /*
+         * Evita adicionar vários MouseListeners
+         * quando a tela é atualizada.
+         */
+        if (Boolean.TRUE.equals(
+                campo.getClientProperty(
+                        "calendarioConfigurado"
+                ))) {
+
+            return;
+        }
+
+        campo.putClientProperty(
+                "calendarioConfigurado",
+                Boolean.TRUE
+        );
+
+        campo.addMouseListener(
+                new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(
+                            MouseEvent e) {
+
+                        mostrarCalendario(
+                                campo
+                        );
+                    }
+                }
+        );
+    }
+
+    /*
+     * Abre o calendário.
+     */
+    private void mostrarCalendario(
+            JTextField campo) {
+
+        LocalDate dataAtual;
+
+        try {
+
+            dataAtual =
+                    LocalDate.parse(
+                            campo.getText().trim(),
+                            FORMATO_DATA
+                    );
+
+        } catch (Exception e) {
+
+            dataAtual =
+                    LocalDate.now();
+        }
+
+        final JPopupMenu popup =
+                new JPopupMenu();
+
+        popup.setBorder(
+                BorderFactory.createLineBorder(
+                        COR_BORDA
+                )
+        );
+
+        popup.setBackground(
+                Color.WHITE
+        );
+
+        JPanel calendario =
+                new JPanel();
+
+        calendario.setLayout(
+                new BoxLayout(
+                        calendario,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        calendario.setBackground(
+                Color.WHITE
+        );
+
+        calendario.setBorder(
+                new EmptyBorder(
+                        12,
+                        12,
+                        12,
+                        12
+                )
+        );
+
+        final LocalDate[] dataSelecionada = {
+                dataAtual
+        };
+
+        final YearMonth[] mesAtual = {
+                YearMonth.from(dataAtual)
+        };
+
+        final boolean[] selecionandoMes = {
+                false
+        };
+
+        construirCalendario(
+                calendario,
+                popup,
+                campo,
+                dataSelecionada,
+                mesAtual,
+                selecionandoMes
+        );
+
+        popup.add(calendario);
+
+        popup.show(
+                campo,
+                0,
+                campo.getHeight() + 4
+        );
+    }
+
+    /*
+     * Decide se o calendário vai mostrar
+     * os dias ou os meses.
+     */
+    private void construirCalendario(
+            JPanel calendario,
+            JPopupMenu popup,
+            JTextField campo,
+            LocalDate[] dataSelecionada,
+            YearMonth[] mesAtual,
+            boolean[] selecionandoMes) {
+
+        calendario.removeAll();
+
+        if (selecionandoMes[0]) {
+
+            construirSelecaoMes(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+
+        } else {
+
+            construirSelecaoDia(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        }
+
+        calendario.revalidate();
+        calendario.repaint();
+    }
+
+    /*
+     * Calendário com seleção de dias.
+     */
+    private void construirSelecaoDia(
+            JPanel calendario,
+            JPopupMenu popup,
+            JTextField campo,
+            LocalDate[] dataSelecionada,
+            YearMonth[] mesAtual,
+            boolean[] selecionandoMes) {
+
+        JPanel cabecalho =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        cabecalho.setOpaque(false);
+
+        cabecalho.setMaximumSize(
+                new Dimension(260, 40)
+        );
+
+        JButton anterior =
+                criarBotaoNavegacao("‹");
+
+        JButton proximo =
+                criarBotaoNavegacao("›");
+
+        JButton mesAno =
+                new JButton(
+                        formatarMesAno(
+                                mesAtual[0]
+                        )
+                );
+
+        mesAno.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        13
+                )
+        );
+
+        mesAno.setForeground(
+                COR_TEXTO
+        );
+
+        mesAno.setBackground(
+                Color.WHITE
+        );
+
+        mesAno.setFocusPainted(false);
+
+        mesAno.setBorderPainted(false);
+
+        mesAno.setCursor(
+                new java.awt.Cursor(
+                        java.awt.Cursor.HAND_CURSOR
+                )
+        );
+
+        anterior.addActionListener(e -> {
+
+            mesAtual[0] =
+                    mesAtual[0].minusMonths(1);
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        proximo.addActionListener(e -> {
+
+            mesAtual[0] =
+                    mesAtual[0].plusMonths(1);
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        /*
+         * Clicar em "Outubro 2026", por exemplo,
+         * abre a seleção dos 12 meses.
+         */
+        mesAno.addActionListener(e -> {
+
+            selecionandoMes[0] = true;
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        cabecalho.add(
+                anterior,
+                BorderLayout.WEST
+        );
+
+        cabecalho.add(
+                mesAno,
+                BorderLayout.CENTER
+        );
+
+        cabecalho.add(
+                proximo,
+                BorderLayout.EAST
+        );
+
+        calendario.add(cabecalho);
+
+        calendario.add(
+                Box.createVerticalStrut(8)
+        );
+
+        /*
+         * Dias da semana.
+         */
+        JPanel diasSemana =
+                new JPanel(
+                        new GridLayout(
+                                1,
+                                7,
+                                2,
+                                2
+                        )
+                );
+
+        diasSemana.setOpaque(false);
+
+        diasSemana.setMaximumSize(
+                new Dimension(260, 25)
+        );
+
+        String[] nomesDias = {
+                "D",
+                "S",
+                "T",
+                "Q",
+                "Q",
+                "S",
+                "S"
+        };
+
+        for (String nome : nomesDias) {
+
+            JLabel label =
+                    new JLabel(
+                            nome,
+                            SwingConstants.CENTER
+                    );
+
+            label.setFont(
+                    new Font(
+                            "SansSerif",
+                            Font.BOLD,
+                            10
+                    )
+            );
+
+            label.setForeground(
+                    COR_CINZA
+            );
+
+            diasSemana.add(label);
+        }
+
+        calendario.add(diasSemana);
+
+        calendario.add(
+                Box.createVerticalStrut(4)
+        );
+
+        /*
+         * Grade dos dias.
+         */
+        JPanel gradeDias =
+                new JPanel(
+                        new GridLayout(
+                                6,
+                                7,
+                                2,
+                                2
+                        )
+                );
+
+        gradeDias.setOpaque(false);
+
+        gradeDias.setPreferredSize(
+                new Dimension(
+                        260,
+                        210
+                )
+        );
+
+        LocalDate primeiroDia =
+                mesAtual[0].atDay(1);
+
+        /*
+         * Java:
+         * segunda = 1
+         * ...
+         * domingo = 7
+         *
+         * Como queremos domingo primeiro,
+         * usamos % 7.
+         */
+        int espacosAntes =
+                primeiroDia
+                        .getDayOfWeek()
+                        .getValue() % 7;
+
+        for (int i = 0;
+             i < espacosAntes;
+             i++) {
+
+            gradeDias.add(
+                    new JLabel("")
+            );
+        }
+
+        for (int dia = 1;
+             dia <= mesAtual[0].lengthOfMonth();
+             dia++) {
+
+            LocalDate data =
+                    mesAtual[0].atDay(dia);
+
+            JButton botaoDia =
+                    new JButton(
+                            String.valueOf(dia)
+                    );
+
+            botaoDia.setFocusPainted(
+                    false
+            );
+
+            botaoDia.setMargin(
+                    new Insets(
+                            0,
+                            0,
+                            0,
+                            0
+                    )
+            );
+
+            botaoDia.setFont(
+                    new Font(
+                            "SansSerif",
+                            Font.PLAIN,
+                            11
+                    )
+            );
+
+            botaoDia.setForeground(
+                    COR_TEXTO
+            );
+
+            botaoDia.setBackground(
+                    Color.WHITE
+            );
+
+            botaoDia.setBorderPainted(
+                    false
+            );
+
+            botaoDia.setCursor(
+                    new java.awt.Cursor(
+                            java.awt.Cursor.HAND_CURSOR
+                    )
+            );
+
+            /*
+             * Destaca a data que está atualmente
+             * selecionada.
+             */
+            if (data.equals(
+                    dataSelecionada[0])) {
+
+                botaoDia.setBackground(
+                        COR_AZUL
+                );
+
+                botaoDia.setForeground(
+                        Color.WHITE
+                );
+
+                botaoDia.setFont(
+                        new Font(
+                                "SansSerif",
+                                Font.BOLD,
+                                11
+                        )
+                );
+            }
+
+            botaoDia.addActionListener(e -> {
+
+                dataSelecionada[0] =
+                        data;
+
+                campo.setText(
+                        FORMATO_DATA.format(
+                                data
+                        )
+                );
+
+                popup.setVisible(
+                        false
+                );
+            });
+
+            gradeDias.add(
+                    botaoDia
+            );
+        }
+
+        calendario.add(gradeDias);
+    }
+
+    /*
+     * Tela para escolher o mês.
+     */
+    private void construirSelecaoMes(
+            JPanel calendario,
+            JPopupMenu popup,
+            JTextField campo,
+            LocalDate[] dataSelecionada,
+            YearMonth[] mesAtual,
+            boolean[] selecionandoMes) {
+
+        JPanel cabecalho =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        cabecalho.setOpaque(false);
+
+        cabecalho.setMaximumSize(
+                new Dimension(
+                        260,
+                        40
+                )
+        );
+
+        JButton anterior =
+                criarBotaoNavegacao("‹");
+
+        JButton proximo =
+                criarBotaoNavegacao("›");
+
+        JButton ano =
+                new JButton(
+                        String.valueOf(
+                                mesAtual[0]
+                                        .getYear()
+                        )
+                );
+
+        ano.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        13
+                )
+        );
+
+        ano.setForeground(
+                COR_TEXTO
+        );
+
+        ano.setBackground(
+                Color.WHITE
+        );
+
+        ano.setFocusPainted(false);
+
+        ano.setBorderPainted(false);
+
+        anterior.addActionListener(e -> {
+
+            mesAtual[0] =
+                    mesAtual[0].minusYears(1);
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        proximo.addActionListener(e -> {
+
+            mesAtual[0] =
+                    mesAtual[0].plusYears(1);
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        cabecalho.add(
+                anterior,
+                BorderLayout.WEST
+        );
+
+        cabecalho.add(
+                ano,
+                BorderLayout.CENTER
+        );
+
+        cabecalho.add(
+                proximo,
+                BorderLayout.EAST
+        );
+
+        calendario.add(cabecalho);
+
+        calendario.add(
+                Box.createVerticalStrut(10)
+        );
+
+        JPanel gradeMeses =
+                new JPanel(
+                        new GridLayout(
+                                4,
+                                3,
+                                6,
+                                6
+                        )
+                );
+
+        gradeMeses.setOpaque(false);
+
+        gradeMeses.setPreferredSize(
+                new Dimension(
+                        260,
+                        180
+                )
+        );
+
+        for (Month mes :
+                Month.values()) {
+
+            JButton botaoMes =
+                    new JButton(
+                            formatarNomeMes(
+                                    mes
+                            )
+                    );
+
+            botaoMes.setFocusPainted(
+                    false
+            );
+
+            botaoMes.setBackground(
+                    Color.WHITE
+            );
+
+            botaoMes.setForeground(
+                    COR_TEXTO
+            );
+
+            botaoMes.setBorder(
+                    BorderFactory.createLineBorder(
+                            COR_BORDA
+                    )
+            );
+
+            botaoMes.setFont(
+                    new Font(
+                            "SansSerif",
+                            Font.PLAIN,
+                            11
+                    )
+            );
+
+            /*
+             * Destaca o mês atualmente selecionado.
+             */
+            if (mesAtual[0].getMonth()
+                    == mes) {
+
+                botaoMes.setBackground(
+                        COR_AZUL
+                );
+
+                botaoMes.setForeground(
+                        Color.WHITE
+                );
+
+                botaoMes.setFont(
+                        new Font(
+                                "SansSerif",
+                                Font.BOLD,
+                                11
+                        )
+                );
+            }
+
+            botaoMes.addActionListener(e -> {
+
+                mesAtual[0] =
+                        YearMonth.of(
+                                mesAtual[0]
+                                        .getYear(),
+                                mes
+                        );
+
+                selecionandoMes[0] =
+                        false;
+
+                construirCalendario(
+                        calendario,
+                        popup,
+                        campo,
+                        dataSelecionada,
+                        mesAtual,
+                        selecionandoMes
+                );
+            });
+
+            gradeMeses.add(
+                    botaoMes
+            );
+        }
+
+        calendario.add(
+                gradeMeses
+        );
+    }
+
+    private JButton criarBotaoNavegacao(
+            String texto) {
+
+        JButton botao =
+                new JButton(texto);
+
+        botao.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        botao.setForeground(
+                COR_TEXTO
+        );
+
+        botao.setBackground(
+                Color.WHITE
+        );
+
+        botao.setFocusPainted(
+                false
+        );
+
+        botao.setBorderPainted(
+                false
+        );
+
+        botao.setMargin(
+                new Insets(
+                        0,
+                        8,
+                        0,
+                        8
+                )
+        );
+
+        botao.setCursor(
+                new java.awt.Cursor(
+                        java.awt.Cursor.HAND_CURSOR
+                )
+        );
+
+        return botao;
+    }
+
+    private String formatarMesAno(
+            YearMonth mes) {
+
+        String texto =
+                mes.format(
+                        DateTimeFormatter.ofPattern(
+                                "MMMM yyyy",
+                                new Locale(
+                                        "pt",
+                                        "BR"
+                                )
+                        )
+                );
+
+        return texto.substring(0, 1)
+                .toUpperCase()
+                + texto.substring(1);
+    }
+
+    private String formatarNomeMes(
+            Month mes) {
+
+        String texto =
+                mes.getDisplayName(
+                        java.time.format.TextStyle.SHORT,
+                        new Locale(
+                                "pt",
+                                "BR"
+                        )
+                );
+
+        return texto.substring(0, 1)
+                .toUpperCase()
+                + texto.substring(1);
+    }
+
+    /*
+     * FILTRO ORIGINAL
+     */
+
+    private void filtrarPorPeriodo() {
+
+        try {
+
+            LocalDate inicio =
+                    LocalDate.parse(
+                            txtDataInicial
+                                    .getText()
+                                    .trim(),
+                            FORMATO_DATA
+                    );
+
+            LocalDate fim =
+                    LocalDate.parse(
+                            txtDataFinal
+                                    .getText()
+                                    .trim(),
+                            FORMATO_DATA
+                    );
+
+            if (fim.isBefore(inicio)) {
+
+                javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "A data final não pode ser anterior à data inicial.",
+                        "Período inválido",
+                        javax.swing.JOptionPane.WARNING_MESSAGE
+                );
+
+                return;
+            }
+
+            aplicarFiltro(
+                    inicio,
+                    fim
+            );
+
+            atualizarTela();
+
+        } catch (
+                DateTimeParseException ex) {
+
+            javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "Digite as datas no formato dd/MM/yyyy.",
+                    "Data inválida",
+                    javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+        }
+    }
+
+    private void aplicarFiltro() {
+
+        if (movimentacoes.isEmpty()) {
+
+            movimentacoesFiltradas =
+                    new ArrayList<>();
+
+            return;
+        }
+
+        LocalDate inicio =
+                movimentacoes
+                        .get(0)
+                        .getData()
+                        .withDayOfMonth(1);
+
+        LocalDate fim =
+                movimentacoes
+                        .get(
+                                movimentacoes.size() - 1
+                        )
+                        .getData();
+
+        fim = fim.withDayOfMonth(
+                fim.lengthOfMonth()
+        );
+
+        aplicarFiltro(
+                inicio,
+                fim
+        );
+    }
+
+    private void aplicarFiltro(
+            LocalDate inicio,
+            LocalDate fim) {
+
+        movimentacoesFiltradas =
+                new ArrayList<>();
+
+        for (Fluxo fluxo :
+                movimentacoes) {
+
+            if (!fluxo.getData()
+                    .isBefore(inicio)
+                    && !fluxo.getData()
+                    .isAfter(fim)) {
+
+                movimentacoesFiltradas.add(
+                        fluxo
+                );
+            }
+        }
+    }
+
+    /*
+     * CARDS
+     */
 
     private JPanel criarCards() {
 
@@ -278,10 +1408,6 @@ public class TelaFluxo extends JFrame {
 
         painel.setOpaque(false);
 
-        painel.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
         painel.setMaximumSize(
                 new Dimension(
                         Integer.MAX_VALUE,
@@ -289,47 +1415,56 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
+        double entradas =
+                calcularEntradas();
+
+        double saidas =
+                calcularSaidas();
+
+        double saldoFinal =
+                calcularSaldoFinal();
 
         painel.add(
                 criarCard(
-                        "Saldo Atual",
-                        "R$ 284.750,00",
-                        "↗ +4.2% vs. mês anterior",
+                        "Saldo no período",
+                        formatarMoeda(
+                                saldoFinal
+                        ),
+                        "Saldo acumulado até a última movimentação",
                         COR_AZUL
                 )
         );
 
-
         painel.add(
                 criarCard(
                         "Total Entradas",
-                        "R$ 156.300,00",
-                        "↗ +8.5% vs. mês anterior",
+                        formatarMoeda(
+                                entradas
+                        ),
+                        "Recebimentos no período",
                         COR_VERDE
                 )
         );
 
-
         painel.add(
                 criarCard(
                         "Total Saídas",
-                        "R$ 98.420,00",
-                        "↘ -2.1% vs. mês anterior",
+                        formatarMoeda(
+                                saidas
+                        ),
+                        "Pagamentos no período",
                         COR_VERMELHO
                 )
         );
 
-
         return painel;
     }
-
 
     private JPanel criarCard(
             String titulo,
             String valor,
-            String variacao,
-            Color cor
-    ) {
+            String descricao,
+            Color cor) {
 
         JPanel card =
                 new JPanel(
@@ -339,8 +1474,9 @@ public class TelaFluxo extends JFrame {
                         )
                 );
 
-
-        card.setBackground(Color.WHITE);
+        card.setBackground(
+                Color.WHITE
+        );
 
         card.setBorder(
                 BorderFactory.createCompoundBorder(
@@ -357,11 +1493,10 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-
-        JLabel lblTitulo =
+        JLabel t =
                 new JLabel(titulo);
 
-        lblTitulo.setFont(
+        t.setFont(
                 new Font(
                         "SansSerif",
                         Font.PLAIN,
@@ -369,15 +1504,14 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-        lblTitulo.setForeground(
-                COR_CINZA
+        t.setForeground(
+                Color.GRAY
         );
 
-
-        JLabel lblValor =
+        JLabel v =
                 new JLabel(valor);
 
-        lblValor.setFont(
+        v.setFont(
                 new Font(
                         "SansSerif",
                         Font.BOLD,
@@ -385,15 +1519,14 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-        lblValor.setForeground(
+        v.setForeground(
                 COR_TEXTO
         );
 
+        JLabel d =
+                new JLabel(descricao);
 
-        JLabel lblVariacao =
-                new JLabel(variacao);
-
-        lblVariacao.setFont(
+        d.setFont(
                 new Font(
                         "SansSerif",
                         Font.BOLD,
@@ -401,67 +1534,404 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-        lblVariacao.setForeground(cor);
+        d.setForeground(cor);
 
-
-        card.add(lblTitulo);
-        card.add(lblValor);
-        card.add(lblVariacao);
-
+        card.add(t);
+        card.add(v);
+        card.add(d);
 
         return card;
     }
 
+    private double calcularEntradas() {
+
+        double total = 0;
+
+        for (Fluxo fluxo :
+                movimentacoesFiltradas) {
+
+            if ("Entrada".equals(
+                    fluxo.getTipo())) {
+
+                total += fluxo.getValor();
+            }
+        }
+
+        return total;
+    }
+
+    private double calcularSaidas() {
+
+        double total = 0;
+
+        for (Fluxo fluxo :
+                movimentacoesFiltradas) {
+
+            if ("Saída".equals(
+                    fluxo.getTipo())) {
+
+                total += Math.abs(
+                        fluxo.getValor()
+                );
+            }
+        }
+
+        return total;
+    }
+
+    private double calcularSaldoInicial() {
+
+        if (movimentacoesFiltradas.isEmpty()) {
+
+            if (movimentacoes.isEmpty()) {
+                return 0;
+            }
+
+            LocalDate inicio =
+                    obterInicioFiltro();
+
+            double saldo = 0;
+
+            for (Fluxo fluxo :
+                    movimentacoes) {
+
+                if (fluxo.getData()
+                        .isBefore(inicio)) {
+
+                    saldo += fluxo.getValor();
+                }
+            }
+
+            return saldo;
+        }
+
+        LocalDate inicio =
+                movimentacoesFiltradas
+                        .get(0)
+                        .getData();
+
+        double saldo = 0;
+
+        for (Fluxo fluxo :
+                movimentacoes) {
+
+            if (fluxo.getData()
+                    .isBefore(inicio)) {
+
+                saldo += fluxo.getValor();
+            }
+        }
+
+        return saldo;
+    }
+
+    private double calcularSaldoFinal() {
+
+        if (movimentacoesFiltradas.isEmpty()) {
+
+            return calcularSaldoInicial();
+        }
+
+        return calcularSaldoInicial()
+                + movimentacoesFiltradas
+                        .stream()
+                        .mapToDouble(
+                                Fluxo::getValor
+                        )
+                        .sum();
+    }
+
+    private LocalDate obterInicioFiltro() {
+
+        try {
+
+            return LocalDate.parse(
+                    txtDataInicial
+                            .getText()
+                            .trim(),
+                    FORMATO_DATA
+            );
+
+        } catch (Exception e) {
+
+            return movimentacoes.isEmpty()
+                    ? LocalDate.now()
+                    : movimentacoes
+                            .get(0)
+                            .getData();
+        }
+    }
+
+    /*
+     * GRÁFICO
+     */
+
     private JPanel criarGrafico() {
 
-        Grafico grafico =
-                new Grafico();
+        JPanel painel =
+                new JPanel(
+                        new BorderLayout()
+                );
 
-
-        grafico.setBackground(
+        painel.setBackground(
                 Color.WHITE
         );
 
+        painel.setBorder(
+                BorderFactory.createLineBorder(
+                        COR_BORDA,
+                        1
+                )
+        );
 
-        grafico.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                COR_BORDA,
-                                1
-                        ),
-                        new EmptyBorder(
-                                12,
-                                12,
-                                12,
-                                12
+        painel.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        painel.setPreferredSize(
+                new Dimension(
+                        0,
+                        310
+                )
+        );
+
+        painel.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        310
+                )
+        );
+
+        DefaultCategoryDataset dataset =
+                criarDatasetGrafico();
+
+        JFreeChart chart =
+                criarChart(dataset);
+
+        ChartPanel chartPanel =
+                new ChartPanel(chart);
+
+        chartPanel.setBackground(
+                Color.WHITE
+        );
+
+        chartPanel.setBorder(
+                new EmptyBorder(
+                        12,
+                        12,
+                        12,
+                        12
+                )
+        );
+
+        chartPanel.setMouseWheelEnabled(
+                false
+        );
+
+        painel.add(
+                chartPanel,
+                BorderLayout.CENTER
+        );
+
+        return painel;
+    }
+
+    private DefaultCategoryDataset criarDatasetGrafico() {
+
+        DefaultCategoryDataset dataset =
+                new DefaultCategoryDataset();
+
+        if (movimentacoesFiltradas.isEmpty()) {
+
+            return dataset;
+        }
+
+        Map<LocalDate, Double> entradas =
+                new LinkedHashMap<>();
+
+        Map<LocalDate, Double> saidas =
+                new LinkedHashMap<>();
+
+        for (Fluxo fluxo :
+                movimentacoesFiltradas) {
+
+            entradas.putIfAbsent(
+                    fluxo.getData(),
+                    0.0
+            );
+
+            saidas.putIfAbsent(
+                    fluxo.getData(),
+                    0.0
+            );
+
+            if ("Entrada".equals(
+                    fluxo.getTipo())) {
+
+                entradas.put(
+                        fluxo.getData(),
+                        entradas.get(
+                                fluxo.getData()
+                        ) + fluxo.getValor()
+                );
+
+            } else {
+
+                saidas.put(
+                        fluxo.getData(),
+                        saidas.get(
+                                fluxo.getData()
+                        ) + Math.abs(
+                                fluxo.getValor()
+                        )
+                );
+            }
+        }
+
+        double saldo =
+                calcularSaldoInicial();
+
+        for (LocalDate data :
+                entradas.keySet()) {
+
+            saldo +=
+                    entradas.get(data);
+
+            saldo -=
+                    saidas.get(data);
+
+            String categoria =
+                    FORMATO_DATA.format(data);
+
+            dataset.addValue(
+                    entradas.get(data),
+                    "Entradas",
+                    categoria
+            );
+
+            dataset.addValue(
+                    saidas.get(data),
+                    "Saídas",
+                    categoria
+            );
+
+            dataset.addValue(
+                    saldo,
+                    "Saldo",
+                    categoria
+            );
+        }
+
+        return dataset;
+    }
+
+    private JFreeChart criarChart(
+            CategoryDataset dataset) {
+
+        JFreeChart chart =
+                ChartFactory.createLineChart(
+                        "Fluxo de Caixa",
+                        "Data",
+                        "Valor (R$)",
+                        dataset,
+                        PlotOrientation.VERTICAL,
+                        true,
+                        true,
+                        false
+                );
+
+        chart.setBackgroundPaint(
+                Color.WHITE
+        );
+
+        chart.setTitle(
+                new TextTitle(
+                        "Entradas x Saídas x Saldo",
+                        new Font(
+                                "SansSerif",
+                                Font.BOLD,
+                                15
                         )
                 )
         );
 
+        if (chart.getLegend() != null) {
 
-        grafico.setAlignmentX(
-                Component.LEFT_ALIGNMENT
+            chart.getLegend()
+                    .setFrame(
+                            BlockBorder.NONE
+                    );
+        }
+
+        CategoryPlot plot =
+                chart.getCategoryPlot();
+
+        plot.setBackgroundPaint(
+                Color.WHITE
         );
 
+        plot.setOutlineVisible(false);
 
-        grafico.setPreferredSize(
-                new Dimension(
-                        0,
-                        230
-                )
+        plot.setRangeGridlinesVisible(
+                true
         );
 
-
-        grafico.setMaximumSize(
-                new Dimension(
-                        Integer.MAX_VALUE,
-                        230
-                )
+        plot.setRangeGridlinePaint(
+                Color.BLACK
         );
 
+        plot.setDomainGridlinesVisible(
+                true
+        );
 
-        return grafico;
+        plot.setDomainGridlinePaint(
+                Color.BLACK
+        );
+
+        LineAndShapeRenderer renderer =
+                new LineAndShapeRenderer(
+                        true,
+                        true
+                );
+
+        renderer.setSeriesPaint(
+                0,
+                COR_VERDE
+        );
+
+        renderer.setSeriesPaint(
+                1,
+                COR_VERMELHO
+        );
+
+        renderer.setSeriesPaint(
+                2,
+                COR_AZUL
+        );
+
+        renderer.setSeriesStroke(
+                0,
+                new BasicStroke(2.0f)
+        );
+
+        renderer.setSeriesStroke(
+                1,
+                new BasicStroke(2.0f)
+        );
+
+        renderer.setSeriesStroke(
+                2,
+                new BasicStroke(2.0f)
+        );
+
+        plot.setRenderer(renderer);
+
+        return chart;
     }
+
+    /*
+     * TABELA
+     */
 
     private JPanel criarTabela() {
 
@@ -470,11 +1940,9 @@ public class TelaFluxo extends JFrame {
                         new BorderLayout()
                 );
 
-
         painel.setBackground(
                 Color.WHITE
         );
-
 
         painel.setBorder(
                 BorderFactory.createCompoundBorder(
@@ -491,17 +1959,28 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-
         painel.setAlignmentX(
                 Component.LEFT_ALIGNMENT
         );
 
+        painel.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        Integer.MAX_VALUE
+                )
+        );
+
+        painel.setPreferredSize(
+                new Dimension(
+                        0,
+                        280
+                )
+        );
 
         JLabel titulo =
                 new JLabel(
                         "Extrato de Movimentações"
                 );
-
 
         titulo.setFont(
                 new Font(
@@ -511,11 +1990,9 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-
         titulo.setForeground(
                 COR_TEXTO
         );
-
 
         titulo.setBorder(
                 new EmptyBorder(
@@ -526,12 +2003,10 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-
         painel.add(
                 titulo,
                 BorderLayout.NORTH
         );
-
 
         String[] colunas = {
                 "Data",
@@ -542,84 +2017,56 @@ public class TelaFluxo extends JFrame {
                 "Saldo Acumulado"
         };
 
-
         DefaultTableModel modelo =
                 new DefaultTableModel(
                         colunas,
                         0
                 ) {
 
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     public boolean isCellEditable(
-                            int linha,
-                            int coluna
-                    ) {
+                            int row,
+                            int column) {
+
                         return false;
                     }
                 };
 
-
-        for (Fluxo m : movimentacoes) {
-
-            String valor;
-
-            if (m.getValor() >= 0) {
-
-                valor = String.format(
-                        "+ R$ %,.2f",
-                        m.getValor()
-                );
-
-            } else {
-
-                valor = String.format(
-                        "- R$ %,.2f",
-                        Math.abs(m.getValor())
-                );
-            }
-
-
-            String saldo =
-                    String.format(
-                            "R$ %,.2f",
-                            m.getSaldo()
-                    );
-
+        for (Fluxo fluxo :
+                movimentacoesFiltradas) {
 
             modelo.addRow(
                     new Object[]{
-                            m.getData(),
-                            m.getDescricao(),
-                            m.getTipo(),
-                            m.getCategoria(),
-                            valor,
-                            saldo
+
+                            FORMATO_DATA.format(
+                                    fluxo.getData()
+                            ),
+
+                            fluxo.getDescricao(),
+
+                            fluxo.getTipo(),
+
+                            fluxo.getCategoria(),
+
+                            formatarValorMovimentacao(
+                                    fluxo.getValor()
+                            ),
+
+                            formatarMoeda(
+                                    fluxo.getSaldo()
+                            )
                     }
             );
         }
 
-
         JTable tabela =
                 new JTable(modelo);
 
-        tabela.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-
-        for (int i = 0; i < tabela.getColumnModel().getColumnCount(); i++) {
-            tabela.getColumnModel().getColumn(i).setResizable(false);
-        }
-
-        tabela.getTableHeader().setReorderingAllowed(false);
-
-        tabela.getColumnModel().getColumn(0).setPreferredWidth(120);
-        tabela.getColumnModel().getColumn(1).setPreferredWidth(240);
-        tabela.getColumnModel().getColumn(2).setPreferredWidth(120);
-        tabela.getColumnModel().getColumn(3).setPreferredWidth(200);
-        tabela.getColumnModel().getColumn(4).setPreferredWidth(150);
-        tabela.getColumnModel().getColumn(5).setPreferredWidth(170);
-
-
-        tabela.setRowHeight(30);
-
+        tabela.setRowHeight(
+                ALTURA_LINHA
+        );
 
         tabela.setFont(
                 new Font(
@@ -629,29 +2076,38 @@ public class TelaFluxo extends JFrame {
                 )
         );
 
-
         tabela.setForeground(
                 COR_TEXTO
         );
-
 
         tabela.setBackground(
                 Color.WHITE
         );
 
-
-        tabela.setShowGrid(true);
-        tabela.setShowHorizontalLines(true);
-        tabela.setShowVerticalLines(true);
-
-        tabela.setGridColor(
-                COR_BORDA
-        );
+        tabela.setShowGrid(false);
 
         tabela.setIntercellSpacing(
-                new Dimension(1, 1)
+                new Dimension(0, 0)
         );
 
+        tabela.setSelectionBackground(
+                Color.WHITE
+        );
+
+        tabela.setSelectionForeground(
+                COR_TEXTO
+        );
+
+        tabela.getTableHeader()
+                .setReorderingAllowed(false);
+
+        tabela.getTableHeader()
+                .setPreferredSize(
+                        new Dimension(
+                                0,
+                                ALTURA_CABECALHO
+                        )
+                );
 
         tabela.getTableHeader()
                 .setFont(
@@ -662,29 +2118,19 @@ public class TelaFluxo extends JFrame {
                         )
                 );
 
-
-     
-        tabela.getTableHeader().setForeground(Color.GRAY);
-
-        tabela.getTableHeader().setBackground(
-                new Color(248, 249, 250)
-        );
-
-
-
         tabela.getTableHeader()
-                .setPreferredSize(
-                        new Dimension(
-                                0,
-                                32
-                        )
+                .setForeground(
+                        Color.GRAY
                 );
 
         tabela.getTableHeader()
-                .setOpaque(true);
-
-        tabela.setSelectionBackground(Color.WHITE);
-        tabela.setSelectionForeground(COR_TEXTO);
+                .setBackground(
+                        new Color(
+                                248,
+                                249,
+                                250
+                        )
+                );
 
         DefaultTableCellRenderer centro =
                 new DefaultTableCellRenderer();
@@ -693,23 +2139,21 @@ public class TelaFluxo extends JFrame {
                 SwingConstants.CENTER
         );
 
-        centro.setBorder(
-                BorderFactory.createMatteBorder(
-                        0,
-                        1,
-                        1,
-                        0,
-                        COR_BORDA
-                )
-        );
+        for (int i = 0;
+             i < tabela
+                     .getColumnModel()
+                     .getColumnCount();
+             i++) {
 
-        tabela.getTableHeader()
-                .setDefaultRenderer(centro);
-
-        for (int i = 0; i < tabela.getColumnModel().getColumnCount(); i++) {
             tabela.getColumnModel()
                     .getColumn(i)
-                    .setCellRenderer(centro);
+                    .setCellRenderer(
+                            centro
+                    );
+
+            tabela.getColumnModel()
+                    .getColumn(i)
+                    .setResizable(false);
         }
 
         tabela.getColumnModel()
@@ -717,16 +2161,16 @@ public class TelaFluxo extends JFrame {
                 .setCellRenderer(
                         new DefaultTableCellRenderer() {
 
+                            private static final long serialVersionUID = 1L;
+
                             @Override
-                            public Component
-                            getTableCellRendererComponent(
+                            public Component getTableCellRendererComponent(
                                     JTable table,
                                     Object value,
                                     boolean isSelected,
                                     boolean hasFocus,
                                     int row,
-                                    int column
-                            ) {
+                                    int column) {
 
                                 JLabel label =
                                         (JLabel)
@@ -739,463 +2183,66 @@ public class TelaFluxo extends JFrame {
                                                 column
                                         );
 
-
                                 label.setHorizontalAlignment(
                                         SwingConstants.CENTER
                                 );
 
-                                label.setBorder(
-                                        BorderFactory.createMatteBorder(
-                                                0,
-                                                1,
-                                                1,
-                                                0,
-                                                COR_BORDA
-                                        )
-                                );
-
                                 String texto =
-                                        value.toString();
+                                        value == null
+                                                ? ""
+                                                : value.toString();
 
-
-                                if (texto.startsWith("+")) {
-
-                                    label.setForeground(
-                                            COR_VERDE
-                                    );
-
-                                } else {
-
-                                    label.setForeground(
-                                            COR_VERMELHO
-                                    );
-                                }
-
+                                label.setForeground(
+                                        texto.startsWith("+")
+                                                ? COR_VERDE
+                                                : COR_VERMELHO
+                                );
 
                                 return label;
                             }
                         }
                 );
 
-
         JScrollPane scroll =
                 new JScrollPane(tabela);
 
-
         scroll.setBorder(null);
-
 
         scroll.getViewport()
                 .setBackground(
                         Color.WHITE
                 );
 
-
         painel.add(
                 scroll,
                 BorderLayout.CENTER
         );
 
-
         return painel;
     }
 
-    private class Grafico extends JPanel {
-
-        @Override
-        protected void paintComponent(
-                Graphics g
-        ) {
-
-            super.paintComponent(g);
-
-
-            Graphics2D g2 =
-                    (Graphics2D) g;
-
-
-            g2.setRenderingHint(
-                    RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON
-            );
-
-
-            int largura =
-                    getWidth();
-
-
-            int altura =
-                    getHeight();
-
-
-            int esquerda = 35;
-            int direita = largura - 25;
-            int topo = 45;
-            int baixo = altura - 35;
-            g2.setColor(
-                    COR_TEXTO
-            );
-
-
-            g2.setFont(
-                    new Font(
-                            "SansSerif",
-                            Font.BOLD,
-                            13
-                    )
-            );
-
-
-            g2.drawString(
-                    "Fluxo de Caixa — Últimos 12 Meses",
-                    esquerda,
-                    22
-            );
-
-            g2.setColor(
-                    new Color(
-                            235,
-                            237,
-                            240
-                    )
-            );
-
-
-            for (int i = 0; i < 5; i++) {
-
-                int y =
-                        topo +
-                        i *
-                        (baixo - topo) /
-                        4;
-
-
-                g2.drawLine(
-                        esquerda,
-                        y,
-                        direita,
-                        y
-                );
-            }
-
-            int[] entradas = {
-                    80, 76, 73, 69,
-                    66, 62, 58, 54,
-                    50, 46, 42, 38
-            };
-
-
-            int[] saidas = {
-                    115, 125, 135, 145,
-                    155, 165, 175, 185,
-                    195, 205, 215, 225
-            };
-
-
-            int[] saldo = {
-                    55, 53, 51, 49,
-                    47, 45, 43, 41,
-                    39, 37, 35, 33
-            };
-
-
-            desenharLinha(
-                    g2,
-                    entradas,
-                    COR_VERDE,
-                    esquerda,
-                    direita,
-                    topo,
-                    baixo
-            );
-
-
-            desenharLinha(
-                    g2,
-                    saidas,
-                    COR_VERMELHO,
-                    esquerda,
-                    direita,
-                    topo,
-                    baixo
-            );
-
-
-            desenharLinha(
-                    g2,
-                    saldo,
-                    COR_AZUL,
-                    esquerda,
-                    direita,
-                    topo,
-                    baixo
-            );
-
-            String[] meses = {
-                    "Jan", "Fev", "Mar", "Abr",
-                    "Mai", "Jun", "Jul", "Ago",
-                    "Set", "Out", "Nov", "Dez"
-            };
-
-
-            g2.setColor(
-                    COR_CINZA
-            );
-
-
-            g2.setFont(
-                    new Font(
-                            "SansSerif",
-                            Font.PLAIN,
-                            9
-                    )
-            );
-
-
-            for (int i = 0; i < meses.length; i++) {
-
-                int x =
-                        esquerda +
-                        i *
-                        (direita - esquerda) /
-                        (meses.length - 1);
-
-
-                g2.drawString(
-                        meses[i],
-                        x - 8,
-                        baixo + 18
-                );
-            }
-
-            int legendaX =
-                    direita - 205;
-
-
-            desenharLegenda(
-                    g2,
-                    legendaX,
-                    COR_VERDE,
-                    "Entradas"
-            );
-
-
-            desenharLegenda(
-                    g2,
-                    legendaX + 70,
-                    COR_VERMELHO,
-                    "Saídas"
-            );
-
-
-            desenharLegenda(
-                    g2,
-                    legendaX + 125,
-                    COR_AZUL,
-                    "Saldo"
-            );
-        }
-
-
-        private void desenharLinha(
-                Graphics2D g2,
-                int[] valores,
-                Color cor,
-                int esquerda,
-                int direita,
-                int topo,
-                int baixo
-        ) {
-
-            g2.setColor(cor);
-
-
-            g2.setStroke(
-                    new BasicStroke(2)
-            );
-
-
-            Path2D caminho =
-                    new Path2D.Double();
-
-
-            for (int i = 0;
-                 i < valores.length;
-                 i++) {
-
-
-                int x =
-                        esquerda +
-                        i *
-                        (direita - esquerda) /
-                        (valores.length - 1);
-
-
-                int y =
-                        topo +
-                        valores[i];
-
-
-                if (y > baixo) {
-                    y = baixo;
-                }
-
-
-                if (i == 0) {
-
-                    caminho.moveTo(
-                            x,
-                            y
-                    );
-
-                } else {
-
-                    caminho.lineTo(
-                            x,
-                            y
-                    );
-                }
-            }
-
-
-            g2.draw(caminho);
-        }
-
-
-        private void desenharLegenda(
-                Graphics2D g2,
-                int x,
-                Color cor,
-                String texto
-        ) {
-
-            g2.setColor(cor);
-
-
-            g2.fillRect(
-                    x,
-                    27,
-                    9,
-                    3
-            );
-
-
-            g2.setColor(
-                    COR_CINZA
-            );
-
-
-            g2.setFont(
-                    new Font(
-                            "SansSerif",
-                            Font.PLAIN,
-                            9
-                    )
-            );
-
-
-            g2.drawString(
-                    texto,
-                    x + 13,
-                    31
-            );
-        }
-    }
-    private void criarDados() {
-
-        movimentacoes =
-                new ArrayList<>();
-
-
-        movimentacoes.add(
-                new Fluxo(
-                        "10/10/2025",
-                        "Recebimento Tech Solutions",
-                        "Entrada",
-                        "Faturamento Serviços",
-                        15000,
-                        271300
-                )
-        );
-
-
-        movimentacoes.add(
-                new Fluxo(
-                        "11/10/2025",
-                        "Pgto AWS Cloud Server",
-                        "Saída",
-                        "Hospedagem e Infra",
-                        -4850,
-                        266450
-                )
-        );
-
-
-        movimentacoes.add(
-                new Fluxo(
-                        "12/10/2025",
-                        "Recebimento Metalúrgica",
-                        "Entrada",
-                        "Venda de Insumos",
-                        28450,
-                        294900
-                )
-        );
-
-
-        movimentacoes.add(
-                new Fluxo(
-                        "14/10/2025",
-                        "Pgto Aluguel Comercial",
-                        "Saída",
-                        "Aluguel Escritório",
-                        -12000,
-                        282900
-                )
-        );
-
-
-        movimentacoes.add(
-                new Fluxo(
-                        "15/10/2025",
-                        "Pgto Folha de Colaboradores",
-                        "Saída",
-                        "Folha de Pagamento",
-                        -45200,
-                        237700
-                )
-        );
-
-
-        movimentacoes.add(
-                new Fluxo(
-                        "16/10/2025",
-                        "Recebimento Vânia Vida",
-                        "Entrada",
-                        "Faturamento Serviços",
-                        8900,
-                        246600
-                )
+    private String formatarMoeda(
+            double valor) {
+
+        return FORMATO_MOEDA.format(
+                valor
         );
     }
-    public static void main(String[] args) {
 
-        try {
+    private String formatarValorMovimentacao(
+            double valor) {
 
-            UIManager.setLookAndFeel(
-                    UIManager.getSystemLookAndFeelClassName()
-            );
+        if (valor >= 0) {
 
-        } catch (Exception ignored) {
+            return "+ "
+                    + formatarMoeda(
+                            valor
+                    );
         }
 
-
-        SwingUtilities.invokeLater(() -> {
-
-            new TelaFluxo()
-                    .setVisible(true);
-
-        });
+        return "- "
+                + formatarMoeda(
+                        Math.abs(valor)
+                );
     }
 }
-
