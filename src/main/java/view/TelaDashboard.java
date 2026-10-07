@@ -224,11 +224,12 @@ public class TelaDashboard extends JFrame {
 
         btnContasReceber.addActionListener(e -> {
             mostrarTela(new TelaContasReceber());
-            selecionarBotao(btnContasPagar);
+            selecionarBotao(btnContasReceber);
         });
 
         sidebar.add(btnContasReceber);
         sidebar.add(Box.createVerticalStrut(5));
+
 
         JButton btnFluxoCaixa = criarBotaoMenu("Fluxo de Caixa");
 
