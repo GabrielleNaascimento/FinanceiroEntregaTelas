@@ -1,16 +1,23 @@
 package model;
 
+import java.time.LocalDate;
+
 public class Fluxo {
 
-    private String data;
+    private LocalDate data;
     private String descricao;
     private String tipo;
     private String categoria;
     private double valor;
     private double saldo;
 
-    public Fluxo(String data, String descricao, String tipo,
-                        String categoria, double valor, double saldo) {
+    public Fluxo(
+            LocalDate data,
+            String descricao,
+            String tipo,
+            String categoria,
+            double valor,
+            double saldo) {
 
         this.data = data;
         this.descricao = descricao;
@@ -20,7 +27,7 @@ public class Fluxo {
         this.saldo = saldo;
     }
 
-    public String getData() {
+    public LocalDate getData() {
         return data;
     }
 
@@ -42,5 +49,9 @@ public class Fluxo {
 
     public double getSaldo() {
         return saldo;
+    }
+
+    public void setSaldo(double saldo) {
+        this.saldo = saldo;
     }
 }
