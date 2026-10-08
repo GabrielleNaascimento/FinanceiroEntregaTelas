@@ -249,16 +249,6 @@ public class TelaDashboard extends JFrame {
         sidebar.add(btnConciliacao);
         sidebar.add(Box.createVerticalStrut(5));
 
-        JButton btnRelatorios = criarBotaoMenu("Relatórios");
-
-        btnRelatorios.addActionListener(e -> {
-            mostrarTela(new TelaRelatorios());
-            selecionarBotao(btnRelatorios);
-        });
-
-        sidebar.add(btnRelatorios);
-        sidebar.add(Box.createVerticalStrut(5));
-
         JButton btnFiscal = criarBotaoMenu("Fiscal");
 
         btnFiscal.addActionListener(e -> {
@@ -267,6 +257,16 @@ public class TelaDashboard extends JFrame {
         });
 
         sidebar.add(btnFiscal);
+        sidebar.add(Box.createVerticalStrut(5));
+
+        JButton btnRelatorios = criarBotaoMenu("Relatórios");
+
+        btnRelatorios.addActionListener(e -> {
+            mostrarTela(new TelaRelatorios());
+            selecionarBotao(btnRelatorios);
+        });
+
+        sidebar.add(btnRelatorios);
         sidebar.add(Box.createVerticalStrut(5));
 
         return sidebar;
