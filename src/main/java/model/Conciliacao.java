@@ -74,7 +74,6 @@ public class Conciliacao {
     }
 
     public static ArrayList<Conciliacao> getMovimentacoes() {
-
         if (movimentacoes.isEmpty()) {
             carregarDados();
         }
@@ -83,146 +82,152 @@ public class Conciliacao {
     }
 
     public static int getTotalConciliadas() {
-    int total = 0;
+        int total = 0;
 
-    for (Conciliacao c : getMovimentacoes()) {
-        if ("Conciliado".equals(c.getStatus())) {
-            total++;
-        }
-    }
-
-    return total;
-}
-
-public static double getTotalDiferenca() {
-    double total = 0;
-
-    for (Conciliacao c : getMovimentacoes()) {
-        total += Math.abs(c.getDiferenca());
-    }
-
-    return total;
-}
-
-public static int getPendentes(String tipo) {
-    int total = 0;
-
-    for (Conciliacao c : getMovimentacoes()) {
-        if (tipo.equals(c.getTipo())
-                && "Pendente".equals(c.getStatus())) {
-            total++;
-        }
-    }
-
-    return total;
-}
-
-public static int getAtrasados(String tipo) {
-    int total = 0;
-
-    for (Contas conta : Contas.getContas()) {
-        if (tipo.equals(conta.getTipo())
-                && "Atrasada".equals(conta.getStatus())) {
-            total++;
+        for (Conciliacao c : getMovimentacoes()) {
+            if ("Conciliado".equals(c.getStatus())) {
+                total++;
+            }
         }
 
-        if (PAGAR.equals(tipo)
-                && "Vencida".equals(conta.getStatus())) {
-            total++;
-        }
+        return total;
     }
 
-    return total;
-}
+    public static double getTotalDiferenca() {
+        double total = 0;
 
-public static ArrayList<Conciliacao> listarPorPeriodo(
-        LocalDate inicio,
-        LocalDate fim) {
-
-    ArrayList<Conciliacao> resultado = new ArrayList<>();
-
-    for (Conciliacao c : getMovimentacoes()) {
-        if (!c.getData().isBefore(inicio)
-                && !c.getData().isAfter(fim)) {
-
-            resultado.add(c);
+        for (Conciliacao c : getMovimentacoes()) {
+            total += Math.abs(c.getDiferenca());
         }
+
+        return total;
     }
 
-    resultado.sort(
-            Comparator.comparing(Conciliacao::getData)
-    );
+    public static int getPendentes(String tipo) {
+        int total = 0;
 
-    return resultado;
-}
+        for (Contas conta : Contas.getContas()) {
+
+            if (tipo.equals(conta.getTipo())
+                    && "Pendente".equals(conta.getStatus())) {
+
+                total++;
+            }
+        }
+
+        return total;
+    }
+
+    public static int getAtrasados(String tipo) {
+        int total = 0;
+
+        for (Contas conta : Contas.getContas()) {
+
+            if (tipo.equals(conta.getTipo())
+                    && ("Vencida".equals(conta.getStatus())
+                    || "Atrasada".equals(conta.getStatus()))) {
+
+                total++;
+            }
+        }
+
+        return total;
+    }
+
+    public static ArrayList<Conciliacao> listarPorPeriodo(
+            LocalDate inicio,
+            LocalDate fim) {
+
+        ArrayList<Conciliacao> resultado = new ArrayList<>();
+
+        for (Conciliacao c : getMovimentacoes()) {
+
+            if (!c.getData().isBefore(inicio)
+                    && !c.getData().isAfter(fim)) {
+
+                resultado.add(c);
+            }
+        }
+
+        resultado.sort(
+                Comparator.comparing(Conciliacao::getData)
+        );
+
+        return resultado;
+    }
 
     private static void carregarDados() {
 
-        movimentacoes.add(new Conciliacao(
-                LocalDate.of(2026, 10, 10),
-                "Recebimento Tech Solutions",
-                15000.00,
-                "Recebimento Tech Solutions",
-                15000.00,
-                0.00,
-                "Conciliado",
-                RECEBER
-        ));
+        movimentacoes.clear();
 
-        movimentacoes.add(new Conciliacao(
-                LocalDate.of(2026, 10, 11),
-                "Pgto AWS Cloud Server",
-                4850.00,
-                "Pgto AWS Cloud Server",
-                4800.00,
-                50.00,
-                "Divergente",
-                PAGAR
-        ));
+        for (Contas conta : Contas.getContas()) {
 
-        movimentacoes.add(new Conciliacao(
-                LocalDate.of(2026, 10, 12),
-                "Recebimento Metalúrgica",
-                28450.00,
-                "Recebimento Metalúrgica",
-                28450.00,
-                0.00,
-                "Conciliado",
-                RECEBER
-        ));
+            double valorSistema = conta.getValor();
+            double valorExtrato = valorSistema;
+            double diferenca = 0;
 
-        movimentacoes.add(new Conciliacao(
-                LocalDate.of(2026, 10, 14),
-                "Pgto Aluguel Comercial",
-                12000.00,
-                "Pgto Aluguel Comercial",
-                11900.00,
-                100.00,
-                "Divergente",
-                PAGAR
-        ));
+            String status;
 
-        movimentacoes.add(new Conciliacao(
-                LocalDate.of(2026, 10, 15),
-                "Pgto Folha de Colaboradores",
-                45200.00,
-                "Pgto Folha de Colaboradores",
-                45200.00,
-                0.00,
-                "Conciliado",
-                PAGAR
-        ));
+            switch (conta.getStatus()) {
 
-        movimentacoes.add(new Conciliacao(
-                LocalDate.of(2026, 10, 16),
-                "Recebimento Vânia Vida",
-                8900.00,
-                "Recebimento Vânia Vida",
-                9000.00,
-                -100.00,
-                "Divergente",
-                RECEBER
-        ));
+                case "Paga":
+                case "Recebida":
+
+                    /*
+                     * Algumas movimentações terão uma pequena
+                     * diferença para demonstrar a conciliação.
+                     */
+
+                    if (conta.getId() == 11) {
+                        valorExtrato = 4600.00;
+                    }
+
+                    diferenca = valorExtrato - valorSistema;
+
+                    if (diferenca == 0) {
+                        status = "Conciliado";
+                    } else {
+                        status = "Divergente";
+                    }
+
+                    break;
+
+                case "Pendente":
+                    status = "Pendente";
+                    break;
+
+                case "Vencida":
+                case "Atrasada":
+                    status = "Atrasada";
+                    break;
+
+                default:
+                    status = conta.getStatus();
+                    break;
+            }
+
+            movimentacoes.add(
+                    new Conciliacao(
+                            conta.getDataVencimento(),
+
+                            conta.getEntidade()
+                                    + " - "
+                                    + conta.getDescricao(),
+
+                            valorExtrato,
+
+                            conta.getDescricao(),
+
+                            valorSistema,
+
+                            diferenca,
+
+                            status,
+
+                            conta.getTipo()
+                    )
+            );
+        }
 
         movimentacoes.sort(
                 Comparator.comparing(Conciliacao::getData)

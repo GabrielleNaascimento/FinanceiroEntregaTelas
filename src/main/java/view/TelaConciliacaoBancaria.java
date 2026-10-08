@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -16,12 +18,14 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -576,6 +580,10 @@ public class TelaConciliacaoBancaria extends JPanel {
             false
     );
 
+    tabela.getTableHeader().setResizingAllowed(
+            false
+    );
+
     tabela.getTableHeader().setOpaque(true);
 
     // Renderer da diferença
@@ -630,104 +638,151 @@ public class TelaConciliacaoBancaria extends JPanel {
                     }
             );
 
-    // Renderer do status
-    tabela.getColumnModel()
-            .getColumn(6)
-            .setCellRenderer(
-                    new DefaultTableCellRenderer() {
+   // Renderer do status
+tabela.getColumnModel()
+        .getColumn(6)
+        .setCellRenderer(
+                new DefaultTableCellRenderer() {
 
-                        @Override
-                        public Component getTableCellRendererComponent(
-                                JTable table,
-                                Object value,
-                                boolean isSelected,
-                                boolean hasFocus,
-                                int row,
-                                int column
-                        ) {
+                    @Override
+                    public Component getTableCellRendererComponent(
+                            JTable table,
+                            Object value,
+                            boolean isSelected,
+                            boolean hasFocus,
+                            int row,
+                            int column
+                    ) {
 
-                            JLabel label =
-                                    (JLabel) super
-                                            .getTableCellRendererComponent(
-                                                    table,
-                                                    value,
-                                                    isSelected,
-                                                    hasFocus,
-                                                    row,
-                                                    column
-                                            );
+                        JLabel label =
+                                (JLabel) super
+                                        .getTableCellRendererComponent(
+                                                table,
+                                                value,
+                                                isSelected,
+                                                hasFocus,
+                                                row,
+                                                column
+                                        );
 
-                            label.setHorizontalAlignment(
-                                    SwingConstants.CENTER
+                        label.setHorizontalAlignment(
+                                SwingConstants.CENTER
+                        );
+
+                        String status = value.toString();
+
+                        if ("Conciliado".equals(status)) {
+
+                            label.setBackground(
+                                    new Color(209, 250, 229)
                             );
 
-                            String status =
-                                    value.toString();
+                            label.setForeground(
+                                    new Color(6, 95, 70)
+                            );
 
-                            if ("Conciliado".equals(status)) {
+                        } else if ("Pendente".equals(status)) {
 
-                                label.setBackground(
-                                        new Color(
-                                                209,
-                                                250,
-                                                229
-                                        )
-                                );
+                            label.setBackground(
+                                    new Color(254, 243, 199)
+                            );
 
-                                label.setForeground(
-                                        new Color(
-                                                6,
-                                                95,
-                                                70
-                                        )
-                                );
+                            label.setForeground(
+                                    new Color(146, 64, 14)
+                            );
 
-                            } else if ("Pendente".equals(status)) {
+                        } else if ("Divergente".equals(status)) {
 
-                                label.setBackground(
-                                        new Color(
-                                                254,
-                                                243,
-                                                199
-                                        )
-                                );
+                            label.setBackground(
+                                    new Color(254, 215, 170)
+                            );
 
-                                label.setForeground(
-                                        new Color(
-                                                146,
-                                                64,
-                                                14
-                                        )
-                                );
+                            label.setForeground(
+                                    new Color(154, 52, 18)
+                            );
 
-                            } else {
+                        } else if ("Atrasada".equals(status)) {
 
-                                label.setBackground(
-                                        new Color(
-                                                254,
-                                                226,
-                                                226
-                                        )
-                                );
+                            label.setBackground(
+                                    new Color(254, 226, 226)
+                            );
 
-                                label.setForeground(
-                                        new Color(
-                                                153,
-                                                27,
-                                                27
-                                        )
-                                );
-                            }
+                            label.setForeground(
+                                    new Color(153, 27, 27)
+                            );
 
-                            label.setOpaque(true);
+                        } else {
 
-                            return label;
+                            label.setBackground(Color.WHITE);
+                            label.setForeground(TEXTO);
                         }
+
+                        label.setOpaque(true);
+
+                        return label;
                     }
-            );
+                }
+        );
 
     JScrollPane scroll =
-            new JScrollPane(tabela);
+        new JScrollPane(tabela);
+
+scroll.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+
+@Override
+protected void configureScrollBarColors() {
+    thumbColor = new Color(203, 213, 225);
+    trackColor = new Color(248, 249, 250);
+}
+
+    @Override
+    protected JButton createDecreaseButton(int orientation) {
+        return criarBotaoScroll();
+    }
+
+    @Override
+    protected JButton createIncreaseButton(int orientation) {
+        return criarBotaoScroll();
+    }
+
+    private JButton criarBotaoScroll() {
+        JButton botao = new JButton();
+        botao.setPreferredSize(new Dimension(0, 0));
+        botao.setMinimumSize(new Dimension(0, 0));
+        botao.setMaximumSize(new Dimension(0, 0));
+        return botao;
+    }
+
+    @Override
+    protected void paintThumb(
+            Graphics g,
+            JComponent c,
+            java.awt.Rectangle thumbBounds
+    ) {
+        if (thumbBounds.isEmpty() || !scrollbar.isEnabled()) {
+            return;
+        }
+
+        Graphics2D g2 = (Graphics2D) g.create();
+
+        g2.setColor(new Color(203, 213, 225));
+
+        g2.fillRoundRect(
+                thumbBounds.x + 2,
+                thumbBounds.y + 2,
+                thumbBounds.width - 4,
+                thumbBounds.height - 4,
+                8,
+                8
+        );
+
+        g2.dispose();
+    }
+});
+
+scroll.getVerticalScrollBar().setPreferredSize(
+    new Dimension(14, 0)
+);
 
     int alturaLinha =
             tabela.getRowHeight();
