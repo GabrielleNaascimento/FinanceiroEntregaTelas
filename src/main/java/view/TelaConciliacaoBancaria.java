@@ -48,10 +48,10 @@ public class TelaConciliacaoBancaria extends JPanel {
     public TelaConciliacaoBancaria() {
         setLayout(new BorderLayout());
 
-                movimentacoes = Conciliacao.getMovimentacoes();
+        movimentacoes = Conciliacao.getMovimentacoes();
 
-                add(criarAreaPrincipal(), BorderLayout.CENTER);
-        }
+        add(criarAreaPrincipal(), BorderLayout.CENTER);
+    }
 
     private JPanel criarSidebar() {
 
@@ -61,8 +61,8 @@ public class TelaConciliacaoBancaria extends JPanel {
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBorder(new EmptyBorder(20, 15, 20, 15));
         JLabel lblLogo = new JLabel(
-                "<html><b>ERP Finance</b><br/>" +
-                "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"
+                "<html><b>ERP Finance</b><br/>"
+                + "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"
         );
 
         lblLogo.setForeground(Color.WHITE);
@@ -70,7 +70,7 @@ public class TelaConciliacaoBancaria extends JPanel {
         lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
         sidebar.add(lblLogo);
         sidebar.add(Box.createVerticalStrut(30));
-        
+
         JButton btnDashboard = criarBotaoMenu("Dashboard");
         sidebar.add(btnDashboard);
         sidebar.add(Box.createVerticalStrut(5));
@@ -78,11 +78,11 @@ public class TelaConciliacaoBancaria extends JPanel {
         JButton btnContasPagar = criarBotaoMenu("Contas a Pagar e Receber");
         sidebar.add(btnContasPagar);
         sidebar.add(Box.createVerticalStrut(5));
-        
+
         JButton btnFluxoCaixa = criarBotaoMenu("Fluxo de Caixa");
         sidebar.add(btnFluxoCaixa);
         sidebar.add(Box.createVerticalStrut(5));
-        
+
         JButton btnConciliacao = new JButton("Conciliação Bancária");
         btnConciliacao.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnConciliacao.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
@@ -122,6 +122,7 @@ public class TelaConciliacaoBancaria extends JPanel {
 
         return btn;
     }
+
     private JPanel criarAreaPrincipal() {
 
         JPanel area = new JPanel(new BorderLayout());
@@ -132,198 +133,198 @@ public class TelaConciliacaoBancaria extends JPanel {
 
         return area;
     }
+
     private JPanel criarHeader() {
 
-    JPanel header = new JPanel(new BorderLayout());
+        JPanel header = new JPanel(new BorderLayout());
 
-    header.setOpaque(false);
-    header.setBorder(new EmptyBorder(15, 25, 15, 25));
+        header.setOpaque(false);
+        header.setBorder(new EmptyBorder(15, 25, 15, 25));
 
-    JLabel lblUser =
-            new JLabel("Jefferson - Administrador");
+        JLabel lblUser
+                = new JLabel("Jefferson - Administrador");
 
-    lblUser.setFont(
-            new Font("SansSerif", Font.BOLD, 12)
-    );
-
-    header.add(lblUser, BorderLayout.EAST);
-
-    return header;
-}
-    private JPanel criarConteudo() {
-
-    JPanel conteudo = new JPanel();
-
-    conteudo.setLayout(
-            new BoxLayout(
-                    conteudo,
-                    BoxLayout.Y_AXIS
-            )
-    );
-
-    conteudo.setOpaque(false);
-
-    conteudo.setBorder(
-            new EmptyBorder(
-                    10,
-                    25,
-                    25,
-                    25
-            )
-    );
-
-    JLabel titulo = new JLabel(
-            "<html><h2 style='margin:0;'>Conciliação Bancária</h2>" +
-            "<span style='color:gray;'>Compare o extrato bancário com os lançamentos do sistema ERP</span></html>"
-    );
-
-    titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    // TÍTULO
-    conteudo.add(titulo);
-    conteudo.add(Box.createVerticalStrut(15));
-
-    // FILTRO DE DATAS
-    conteudo.add(criarFiltroDatas());
-    conteudo.add(Box.createVerticalStrut(15));
-
-    // CARDS
-    conteudo.add(criarCards());
-    conteudo.add(Box.createVerticalStrut(15));
-
-    // TABELA
-    conteudo.add(criarTabela());
-
-    return conteudo;
-    }
-
-private JPanel criarFiltroDatas() {
-
-    JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-    painel.setOpaque(false);
-    painel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    String[] opcoes = {
-        "Último Semestre",
-        "Último Ano",
-        "Últimos 30 dias"
-    };
-
-    JComboBox<String> filtro = new JComboBox<>(opcoes);
-
-    filtro.setPreferredSize(new Dimension(160, 28));
-    filtro.setBackground(Color.WHITE);
-
-    filtro.addActionListener(e -> {
-
-        String opcaoSelecionada =
-                (String) filtro.getSelectedItem();
-
-        LocalDate hoje = LocalDate.now();
-        LocalDate dataInicial;
-
-        switch (opcaoSelecionada) {
-
-            case "Último Ano":
-                dataInicial = hoje.minusYears(1);
-                break;
-
-            case "Últimos 30 dias":
-                dataInicial = hoje.minusDays(30);
-                break;
-
-            case "Último Semestre":
-            default:
-                dataInicial = hoje.minusMonths(6);
-                break;
-        }
-
-        ArrayList<Conciliacao> dadosFiltrados =
-        Conciliacao.listarPorPeriodo(
-                dataInicial,
-                hoje
+        lblUser.setFont(
+                new Font("SansSerif", Font.BOLD, 12)
         );
 
-        
+        header.add(lblUser, BorderLayout.EAST);
 
-        atualizarTabela(dadosFiltrados);   
+        return header;
+    }
 
-});
+    private JPanel criarConteudo() {
 
-    painel.add(filtro);
+        JPanel conteudo = new JPanel();
 
-    return painel;
-}
+        conteudo.setLayout(
+                new BoxLayout(
+                        conteudo,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        conteudo.setOpaque(false);
+
+        conteudo.setBorder(
+                new EmptyBorder(
+                        10,
+                        25,
+                        25,
+                        25
+                )
+        );
+
+        JLabel titulo = new JLabel(
+                "<html><h2 style='margin:0;'>Conciliação Bancária</h2>"
+                + "<span style='color:gray;'>Compare o extrato bancário com os lançamentos do sistema ERP</span></html>"
+        );
+
+        titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // TÍTULO
+        conteudo.add(titulo);
+        conteudo.add(Box.createVerticalStrut(15));
+
+        // FILTRO DE DATAS
+        conteudo.add(criarFiltroDatas());
+        conteudo.add(Box.createVerticalStrut(15));
+
+        // CARDS
+        conteudo.add(criarCards());
+        conteudo.add(Box.createVerticalStrut(15));
+
+        // TABELA
+        conteudo.add(criarTabela());
+
+        return conteudo;
+    }
+
+    private JPanel criarFiltroDatas() {
+
+        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        painel.setOpaque(false);
+        painel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        String[] opcoes = {
+            "Último Semestre",
+            "Último Ano",
+            "Últimos 30 dias"
+        };
+
+        JComboBox<String> filtro = new JComboBox<>(opcoes);
+
+        filtro.setPreferredSize(new Dimension(160, 28));
+        filtro.setBackground(Color.WHITE);
+
+        filtro.addActionListener(e -> {
+
+            String opcaoSelecionada
+                    = (String) filtro.getSelectedItem();
+
+            LocalDate hoje = LocalDate.now();
+            LocalDate dataInicial;
+
+            switch (opcaoSelecionada) {
+
+                case "Último Ano":
+                    dataInicial = hoje.minusYears(1);
+                    break;
+
+                case "Últimos 30 dias":
+                    dataInicial = hoje.minusDays(30);
+                    break;
+
+                case "Último Semestre":
+                default:
+                    dataInicial = hoje.minusMonths(6);
+                    break;
+            }
+
+            ArrayList<Conciliacao> dadosFiltrados
+                    = Conciliacao.listarPorPeriodo(
+                            dataInicial,
+                            hoje
+                    );
+
+            atualizarTabela(dadosFiltrados);
+
+        });
+
+        painel.add(filtro);
+
+        return painel;
+    }
 
     private JPanel criarCards() {
 
-    JPanel painel = new JPanel(
-            new GridLayout(
-                    2,
-                    3,
-                    15,
-                    10
-            )
-    );
+        JPanel painel = new JPanel(
+                new GridLayout(
+                        2,
+                        3,
+                        15,
+                        10
+                )
+        );
 
-    painel.setOpaque(false);
-    painel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painel.setOpaque(false);
+        painel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    painel.setMaximumSize(
-            new Dimension(
-                    Integer.MAX_VALUE,
-                    190
-            )
-    );
+        painel.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        190
+                )
+        );
 
-    // 1. CONCILIAÇÃO TOTAL
-painel.add(criarCard(
-        "Conciliação Total",
-        String.valueOf(Conciliacao.getTotalConciliadas()),
-        "movimentações conciliadas",
-        VERDE
-));
+        // 1. CONCILIAÇÃO TOTAL
+        painel.add(criarCard(
+                "Conciliação Total",
+                String.valueOf(Conciliacao.getTotalConciliadas()),
+                "movimentações conciliadas",
+                VERDE
+        ));
 
-painel.add(criarCard(
-        "Diferença Bancária",
-        String.format("R$ %.2f", Conciliacao.getTotalDiferenca()),
-        "requerem verificação",
-        VERMELHO
-));
+        painel.add(criarCard(
+                "Diferença Bancária",
+                String.format("R$ %.2f", Conciliacao.getTotalDiferenca()),
+                "requerem verificação",
+                VERMELHO
+        ));
 
-painel.add(criarCard(
-        "Pendentes a Pagar",
-        String.valueOf(Conciliacao.getPendentes(Conciliacao.PAGAR)),
-        "movimentações pendentes",
-        LARANJA
-));
+        painel.add(criarCard(
+                "Pendentes a Pagar",
+                String.valueOf(Conciliacao.getPendentes(Conciliacao.PAGAR)),
+                "movimentações pendentes",
+                LARANJA
+        ));
 
-painel.add(criarCard(
-        "Pendentes a Receber",
-        String.valueOf(Conciliacao.getPendentes(Conciliacao.RECEBER)),
-        "movimentações pendentes",
-        LARANJA
-));
+        painel.add(criarCard(
+                "Pendentes a Receber",
+                String.valueOf(Conciliacao.getPendentes(Conciliacao.RECEBER)),
+                "movimentações pendentes",
+                LARANJA
+        ));
 
-int atrasadosReceber = Conciliacao.getAtrasados(Conciliacao.RECEBER);
-int atrasadosPagar = Conciliacao.getAtrasados(Conciliacao.PAGAR);
+        int atrasadosReceber = Conciliacao.getAtrasados(Conciliacao.RECEBER);
+        int atrasadosPagar = Conciliacao.getAtrasados(Conciliacao.PAGAR);
 
-painel.add(criarCard(
-        "Atraso a Receber",
-        String.valueOf(atrasadosReceber),
-        atrasadosReceber == 0 ? "sem atrasos" : "contas atrasadas",
-        atrasadosReceber == 0 ? VERDE : VERMELHO
-));
+        painel.add(criarCard(
+                "Atraso a Receber",
+                String.valueOf(atrasadosReceber),
+                atrasadosReceber == 0 ? "sem atrasos" : "contas atrasadas",
+                atrasadosReceber == 0 ? VERDE : VERMELHO
+        ));
 
-painel.add(criarCard(
-        "Atraso a Pagar",
-        String.valueOf(atrasadosPagar),
-        atrasadosPagar == 0 ? "sem atrasos" : "contas vencidas",
-        atrasadosPagar == 0 ? VERDE : VERMELHO
-));
+        painel.add(criarCard(
+                "Atraso a Pagar",
+                String.valueOf(atrasadosPagar),
+                atrasadosPagar == 0 ? "sem atrasos" : "contas vencidas",
+                atrasadosPagar == 0 ? VERDE : VERMELHO
+        ));
 
-    return painel;
-}
+        return painel;
+    }
 
     private JPanel criarCard(
             String titulo,
@@ -332,8 +333,8 @@ painel.add(criarCard(
             Color corVariacao
     ) {
 
-        JPanel card =
-                new JPanel(
+        JPanel card
+                = new JPanel(
                         new GridLayout(
                                 3,
                                 1
@@ -399,415 +400,451 @@ painel.add(criarCard(
 
         return card;
     }
+
     private JPanel criarTabela() {
 
-        JPanel painel =
-                new JPanel(
-                        new BorderLayout()
-                );
-
-        painel.setBackground(Color.WHITE);
-
-        painel.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                BORDA,
-                                1
-                        ),
-                        new EmptyBorder(
-                                12,
-                                12,
-                                12,
-                                12
-                        )
-                )
-        );
-
-        painel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel titulo =
-                new JLabel(
-                        "Confronto de Lançamentos"
-                );
-
-        titulo.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.BOLD,
-                        13
-                )
-        );
-
-        titulo.setForeground(TEXTO);
-
-        titulo.setBorder(
-                new EmptyBorder(
-                        0,
-                        0,
-                        8,
-                        0
-                )
-        );
-
-        painel.add(
-                titulo,
-                BorderLayout.NORTH
-        );
-
-        String[] colunas = {
-                "Data",
-                "Descrição (Extrato)",
-                "Valor Extrato",
-                "Descrição (Sistema)",
-                "Valor Sistema",
-                "Diferença",
-                "Status"
-        };
-
-   modeloTabela =
-        new DefaultTableModel(
-                colunas,
-                0
-        ) {
-
-                    @Override
-                    public boolean isCellEditable(
-                            int row,
-                            int col
-                    ) {
-                        return false;
-                    }
-                };
-
-        for (Conciliacao m : movimentacoes) {
-
-            String diferenca;
-
-            if (m.getDiferenca() == 0) {
-
-                diferenca = "R$ 0,00";
-
-            } else {
-
-              diferenca = formatarMoeda(m.getDiferenca());
-
-            modeloTabela.addRow(
-                    new Object[]{
-                        m.getData().format(
-                        java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                        ),
-                        m.getDescricaoExtrato(),
-                        m.getValorExtrato(),
-                        m.getDescricaoSistema(),
-                        m.getValorSistema(),
-                        diferenca,
-                        m.getStatus()
-                }
-            );
-        }
-
-        tabela = new JTable(modeloTabela);
-
-        DefaultTableCellRenderer centro =
-        new DefaultTableCellRenderer();
-
-        centro.setHorizontalAlignment(
-        SwingConstants.CENTER
-        );
-
-        tabela.getColumnModel().getColumn(0).setCellRenderer(centro);
-        tabela.getColumnModel().getColumn(1).setCellRenderer(centro);
-        tabela.getColumnModel().getColumn(2).setCellRenderer(criarRendererMoeda());
-        tabela.getColumnModel().getColumn(3).setCellRenderer(centro);
-        tabela.getColumnModel().getColumn(4).setCellRenderer(criarRendererMoeda());
-
-        tabela.setRowHeight(30);
-        tabela.setIntercellSpacing(new Dimension(0, 1));
-        tabela.setSelectionBackground(new Color(239, 246, 255));
-        tabela.setSelectionForeground(TEXTO);
-        tabela.setShowHorizontalLines(true);
-        tabela.setShowVerticalLines(false);
-        tabela.setShowGrid(false);
-        tabela.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.PLAIN,
-                        11
-                )
-        );
-
-
-        tabela.setForeground(TEXTO);
-
-        tabela.getTableHeader().setFont(
-                new Font(
-                        "SansSerif",
-                        Font.BOLD,
-                        10
-                )
-        );
-
-        tabela.getTableHeader().setForeground(Color.GRAY);
-
-        tabela.getTableHeader().setBackground(
-                new Color(248, 249, 250)
-        );
-
-        tabela.getTableHeader().setPreferredSize(
-                new Dimension(
-                        0,
-                        30
-                )
-        );
-        tabela.getTableHeader().setReorderingAllowed(false);
-        tabela.getTableHeader().setOpaque(true);
-
-        tabela.getColumnModel()
-                .getColumn(5)
-                .setCellRenderer(
-                        new DefaultTableCellRenderer() {
-
-                            @Override
-                            public Component getTableCellRendererComponent(
-                                    JTable table,
-                                    Object value,
-                                    boolean isSelected,
-                                    boolean hasFocus,
-                                    int row,
-                                    int column
-                            ) {
-
-                                JLabel label =
-                                        (JLabel) super.getTableCellRendererComponent(
-                                                table,
-                                                value,
-                                                isSelected,
-                                                hasFocus,
-                                                row,
-                                                column
-                                        );
-
-                                label.setHorizontalAlignment(
-                                        SwingConstants.CENTER
-                                );
-
-                                String texto =
-                                        value.toString();
-
-                                if (!texto.equals("R$ 0,00")) {
-
-                                    label.setForeground(
-                                            VERMELHO
-                                    );
-
-                                } else {
-
-                                    label.setForeground(
-                                            Color.GRAY
-                                    );
-                                }
-
-                                return label;
-                            }
-                        }
-                );
-        tabela.getColumnModel()
-                .getColumn(6)
-                .setCellRenderer(
-                        new DefaultTableCellRenderer() {
-
-                            @Override
-                            public Component getTableCellRendererComponent(
-                                    JTable table,
-                                    Object value,
-                                    boolean isSelected,
-                                    boolean hasFocus,
-                                    int row,
-                                    int column
-                            ) {
-
-                                JLabel label =
-                                        (JLabel) super.getTableCellRendererComponent(
-                                                table,
-                                                value,
-                                                isSelected,
-                                                hasFocus,
-                                                row,
-                                                column
-                                        );
-
-                                label.setHorizontalAlignment(
-                                        SwingConstants.CENTER
-                                );
-
-                                String status =
-                                        value.toString();
-
-                                if ("Conciliado".equals(status)) {
-
-                                    label.setBackground(
-                                            new Color(
-                                                    209,
-                                                    250,
-                                                    229
-                                            )
-                                    );
-
-                                    label.setForeground(
-                                            new Color(
-                                                    6,
-                                                    95,
-                                                    70
-                                            )
-                                    );
-
-                                } else if ("Pendente".equals(status)) {
-
-                                    label.setBackground(
-                                            new Color(
-                                                    254,
-                                                    243,
-                                                    199
-                                            )
-                                    );
-
-                                    label.setForeground(
-                                            new Color(
-                                                    146,
-                                                    64,
-                                                    14
-                                            )
-                                    );
-
-                                } else {
-
-                                    label.setBackground(
-                                            new Color(
-                                                    254,
-                                                    226,
-                                                    226
-                                            )
-                                    );
-
-                                    label.setForeground(
-                                            new Color(
-                                                    153,
-                                                    27,
-                                                    27
-                                            )
-                                    );
-                                }
-
-                                label.setOpaque(true);
-
-                                return label;
-                            }
-                        }
-                );
-
-        JScrollPane scroll =
-                new JScrollPane(tabela);
-
-        int alturaLinha = tabela.getRowHeight();
-        int quantidadeLinhas = tabela.getRowCount();
-
-        int alturaTabela = (quantidadeLinhas * alturaLinha) + 30;
-
-scroll.setPreferredSize(new Dimension(0, alturaTabela));
-scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, alturaTabela));
-
-        scroll.setBorder(null);
-
-        painel.add(
-                scroll,
-                BorderLayout.CENTER
-        );
-
-        return painel;
-    }
-
-    private String formatarMoeda(double valor) {
-    return String.format(
-            "R$ %,.2f",
-            valor
-    ).replace(",", "X")
-     .replace(".", ",")
-     .replace("X", ".");
-}
-
-private DefaultTableCellRenderer criarRendererCentralizado() {
-    DefaultTableCellRenderer renderer =
-            new DefaultTableCellRenderer();
-
-    renderer.setHorizontalAlignment(
-            SwingConstants.CENTER
+    JPanel painel = new JPanel(new BorderLayout());
+
+    painel.setBackground(Color.WHITE);
+
+    painel.setBorder(
+            BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(BORDA, 1),
+                    new EmptyBorder(12, 12, 12, 12)
+            )
     );
 
-    return renderer;
-}
+    painel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-private DefaultTableCellRenderer criarRendererMoeda() {
-    DefaultTableCellRenderer renderer =
-            new DefaultTableCellRenderer() {
+    JLabel titulo = new JLabel("Confronto de Lançamentos");
 
-                @Override
-                public Component getTableCellRendererComponent(
-                        JTable table,
-                        Object value,
-                        boolean isSelected,
-                        boolean hasFocus,
-                        int row,
-                        int column
-                ) {
-                    JLabel label =
-                            (JLabel) super.getTableCellRendererComponent(
-                                    table,
-                                    value,
-                                    isSelected,
-                                    hasFocus,
-                                    row,
-                                    column
-                            );
+    titulo.setFont(
+            new Font(
+                    "SansSerif",
+                    Font.BOLD,
+                    13
+            )
+    );
 
-                    label.setHorizontalAlignment(
-                            SwingConstants.RIGHT
-                    );
+    titulo.setForeground(TEXTO);
 
-                    if (value instanceof Number) {
-                        label.setText(
-                                formatarMoeda(
-                                        ((Number) value).doubleValue()
-                                )
-                        );
-                    }
+    titulo.setBorder(
+            new EmptyBorder(
+                    0,
+                    0,
+                    8,
+                    0
+            )
+    );
 
-                    return label;
-                }
-            };
+    painel.add(
+            titulo,
+            BorderLayout.NORTH
+    );
 
-    return renderer;
-}
+    String[] colunas = {
+        "Data",
+        "Descrição (Extrato)",
+        "Valor Extrato",
+        "Descrição (Sistema)",
+        "Valor Sistema",
+        "Diferença",
+        "Status"
+    };
 
-
-private void atualizarTabela(ArrayList<Conciliacao> dados) {
-
-    modeloTabela.setRowCount(0);
+    modeloTabela = new DefaultTableModel(
+            colunas,
+            0
+    ) {
+        @Override
+        public boolean isCellEditable(
+                int row,
+                int col
+        ) {
+            return false;
+        }
+    };
 
     DateTimeFormatter formato =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    for (Conciliacao m : dados) {
+    // Adiciona todas as movimentações na tabela
+    for (Conciliacao m : movimentacoes) {
 
         String diferenca;
 
         if (m.getDiferenca() == 0) {
             diferenca = "R$ 0,00";
         } else {
-                diferenca = formatarMoeda(m.getDiferenca());
+            diferenca = formatarMoeda(m.getDiferenca());
         }
 
         modeloTabela.addRow(
                 new Object[]{
+                    m.getData().format(formato),
+                    m.getDescricaoExtrato(),
+                    m.getValorExtrato(),
+                    m.getDescricaoSistema(),
+                    m.getValorSistema(),
+                    diferenca,
+                    m.getStatus()
+                }
+        );
+    }
+
+    // Cria a tabela somente depois de adicionar os dados
+    tabela = new JTable(modeloTabela);
+
+    DefaultTableCellRenderer centro =
+            new DefaultTableCellRenderer();
+
+    centro.setHorizontalAlignment(
+            SwingConstants.CENTER
+    );
+
+    tabela.getColumnModel()
+            .getColumn(0)
+            .setCellRenderer(centro);
+
+    tabela.getColumnModel()
+            .getColumn(1)
+            .setCellRenderer(centro);
+
+    tabela.getColumnModel()
+            .getColumn(2)
+            .setCellRenderer(
+                    criarRendererMoeda()
+            );
+
+    tabela.getColumnModel()
+            .getColumn(3)
+            .setCellRenderer(centro);
+
+    tabela.getColumnModel()
+            .getColumn(4)
+            .setCellRenderer(
+                    criarRendererMoeda()
+            );
+
+    tabela.setRowHeight(30);
+
+    tabela.setIntercellSpacing(
+            new Dimension(0, 1)
+    );
+
+    tabela.setSelectionBackground(
+            new Color(239, 246, 255)
+    );
+
+    tabela.setSelectionForeground(TEXTO);
+
+    tabela.setShowHorizontalLines(true);
+    tabela.setShowVerticalLines(false);
+    tabela.setShowGrid(false);
+
+    tabela.setFont(
+            new Font(
+                    "SansSerif",
+                    Font.PLAIN,
+                    11
+            )
+    );
+
+    tabela.setForeground(TEXTO);
+
+    tabela.getTableHeader().setFont(
+            new Font(
+                    "SansSerif",
+                    Font.BOLD,
+                    10
+            )
+    );
+
+    tabela.getTableHeader().setForeground(
+            Color.GRAY
+    );
+
+    tabela.getTableHeader().setBackground(
+            new Color(248, 249, 250)
+    );
+
+    tabela.getTableHeader().setPreferredSize(
+            new Dimension(0, 30)
+    );
+
+    tabela.getTableHeader().setReorderingAllowed(
+            false
+    );
+
+    tabela.getTableHeader().setOpaque(true);
+
+    // Renderer da diferença
+    tabela.getColumnModel()
+            .getColumn(5)
+            .setCellRenderer(
+                    new DefaultTableCellRenderer() {
+
+                        @Override
+                        public Component getTableCellRendererComponent(
+                                JTable table,
+                                Object value,
+                                boolean isSelected,
+                                boolean hasFocus,
+                                int row,
+                                int column
+                        ) {
+
+                            JLabel label =
+                                    (JLabel) super
+                                            .getTableCellRendererComponent(
+                                                    table,
+                                                    value,
+                                                    isSelected,
+                                                    hasFocus,
+                                                    row,
+                                                    column
+                                            );
+
+                            label.setHorizontalAlignment(
+                                    SwingConstants.CENTER
+                            );
+
+                            String texto =
+                                    value.toString();
+
+                            if (!texto.equals("R$ 0,00")) {
+
+                                label.setForeground(
+                                        VERMELHO
+                                );
+
+                            } else {
+
+                                label.setForeground(
+                                        Color.GRAY
+                                );
+                            }
+
+                            return label;
+                        }
+                    }
+            );
+
+    // Renderer do status
+    tabela.getColumnModel()
+            .getColumn(6)
+            .setCellRenderer(
+                    new DefaultTableCellRenderer() {
+
+                        @Override
+                        public Component getTableCellRendererComponent(
+                                JTable table,
+                                Object value,
+                                boolean isSelected,
+                                boolean hasFocus,
+                                int row,
+                                int column
+                        ) {
+
+                            JLabel label =
+                                    (JLabel) super
+                                            .getTableCellRendererComponent(
+                                                    table,
+                                                    value,
+                                                    isSelected,
+                                                    hasFocus,
+                                                    row,
+                                                    column
+                                            );
+
+                            label.setHorizontalAlignment(
+                                    SwingConstants.CENTER
+                            );
+
+                            String status =
+                                    value.toString();
+
+                            if ("Conciliado".equals(status)) {
+
+                                label.setBackground(
+                                        new Color(
+                                                209,
+                                                250,
+                                                229
+                                        )
+                                );
+
+                                label.setForeground(
+                                        new Color(
+                                                6,
+                                                95,
+                                                70
+                                        )
+                                );
+
+                            } else if ("Pendente".equals(status)) {
+
+                                label.setBackground(
+                                        new Color(
+                                                254,
+                                                243,
+                                                199
+                                        )
+                                );
+
+                                label.setForeground(
+                                        new Color(
+                                                146,
+                                                64,
+                                                14
+                                        )
+                                );
+
+                            } else {
+
+                                label.setBackground(
+                                        new Color(
+                                                254,
+                                                226,
+                                                226
+                                        )
+                                );
+
+                                label.setForeground(
+                                        new Color(
+                                                153,
+                                                27,
+                                                27
+                                        )
+                                );
+                            }
+
+                            label.setOpaque(true);
+
+                            return label;
+                        }
+                    }
+            );
+
+    JScrollPane scroll =
+            new JScrollPane(tabela);
+
+    int alturaLinha =
+            tabela.getRowHeight();
+
+    int quantidadeLinhas =
+            tabela.getRowCount();
+
+    int alturaTabela =
+            (quantidadeLinhas * alturaLinha) + 30;
+
+    scroll.setPreferredSize(
+            new Dimension(
+                    0,
+                    alturaTabela
+            )
+    );
+
+    scroll.setMaximumSize(
+            new Dimension(
+                    Integer.MAX_VALUE,
+                    alturaTabela
+            )
+    );
+
+    scroll.setBorder(null);
+
+    painel.add(
+            scroll,
+            BorderLayout.CENTER
+    );
+
+    return painel;
+}
+
+    
+
+    private String formatarMoeda(double valor) {
+        return String.format(
+                "R$ %,.2f",
+                valor
+        ).replace(",", "X")
+                .replace(".", ",")
+                .replace("X", ".");
+    }
+
+    private DefaultTableCellRenderer criarRendererCentralizado() {
+        DefaultTableCellRenderer renderer
+                = new DefaultTableCellRenderer();
+
+        renderer.setHorizontalAlignment(
+                SwingConstants.CENTER
+        );
+
+        return renderer;
+    }
+
+    private DefaultTableCellRenderer criarRendererMoeda() {
+        DefaultTableCellRenderer renderer
+                = new DefaultTableCellRenderer() {
+
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable table,
+                    Object value,
+                    boolean isSelected,
+                    boolean hasFocus,
+                    int row,
+                    int column
+            ) {
+                JLabel label
+                        = (JLabel) super.getTableCellRendererComponent(
+                                table,
+                                value,
+                                isSelected,
+                                hasFocus,
+                                row,
+                                column
+                        );
+
+                label.setHorizontalAlignment(
+                        SwingConstants.RIGHT
+                );
+
+                if (value instanceof Number) {
+                    label.setText(
+                            formatarMoeda(
+                                    ((Number) value).doubleValue()
+                            )
+                    );
+                }
+
+                return label;
+            }
+        };
+
+        return renderer;
+    }
+
+    private void atualizarTabela(ArrayList<Conciliacao> dados) {
+
+        modeloTabela.setRowCount(0);
+
+        DateTimeFormatter formato
+                = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        for (Conciliacao m : dados) {
+
+            String diferenca;
+
+            if (m.getDiferenca() == 0) {
+                diferenca = "R$ 0,00";
+            } else {
+                diferenca = formatarMoeda(m.getDiferenca());
+            }
+
+            modeloTabela.addRow(
+                    new Object[]{
                         m.getData().format(formato),
                         m.getDescricaoExtrato(),
                         m.getValorExtrato(),
@@ -815,11 +852,11 @@ private void atualizarTabela(ArrayList<Conciliacao> dados) {
                         m.getValorSistema(),
                         diferenca,
                         m.getStatus()
-                }
-        );
-    }
+                    }
+            );
+        }
 
-    tabela.revalidate();
-    tabela.repaint();
-}
+        tabela.revalidate();
+        tabela.repaint();
+    }
 }
