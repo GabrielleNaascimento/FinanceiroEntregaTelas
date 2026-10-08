@@ -2,7 +2,16 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 
+    // Nota para a pessoa de integracao ou de banco: A tela de Relatorios tem um 
+    // seletor que muda o que aparece na tela. O valor que se origina de um mes
+    // especifico teria que ser puxado do banco de dados. Eu vou usar YearMonth
+    // para definir os meses com alguns ifs. Para o java nao dar problema, vou
+    // deixar os valores em 0, mas o codigo esta preparado para voces 
+    // substituirem por consultas no banco de dados. 
 public class Relatorio {
 
     private String periodo;
@@ -11,6 +20,8 @@ public class Relatorio {
     private double despesaTotal;
     private double lucroTotal;
     private double margemLucro;
+
+    private YearMonth mes;
 
     private List<ResumoMensal> resumoMensal;
     private List<CategoriaDespesa> despesasPorCategoria;
@@ -24,60 +35,62 @@ public class Relatorio {
         lucroTotal = 0;
         margemLucro = 0;
 
+        mes = YearMonth.now();
+
         resumoMensal = new ArrayList<>();
         despesasPorCategoria = new ArrayList<>();
 
         carregarDados();
     }
+
+  
+
+    public void setPeriodo(String periodo) {
+
+        this.periodo = periodo;
+
+        carregarDados();
+    }
+
+    private int quantidadeMeses() {
+
+        if (periodo.equals("Último Ano")) {
+            return 12;
+        }
+
+        if (periodo.equals("Últimos 30 dias")) {
+            return 1;
+        }
+
+        return 6;
+    }
+
     private void carregarDados() {
 
-        resumoMensal.add(new ResumoMensal(
-                "Junho 2025",
-                120000,
-                80000,
-                40000,
-                33.3
-        ));
+        mes = YearMonth.now();
 
-        resumoMensal.add(new ResumoMensal(
-                "Julho 2025",
-                145000,
-                90000,
-                55000,
-                37.9
-        ));
+        resumoMensal.clear();
+        despesasPorCategoria.clear();
 
-        resumoMensal.add(new ResumoMensal(
-                "Agosto 2025",
-                130000,
-                85000,
-                45000,
-                34.6
-        ));
+        int quantidade = quantidadeMeses();
 
-        resumoMensal.add(new ResumoMensal(
-                "Setembro 2025",
-                160000,
-                110000,
-                50000,
-                31.2
-        ));
+        for (int i = quantidade; i >= 1; i--) {
 
-        resumoMensal.add(new ResumoMensal(
-                "Outubro 2025",
-                156300,
-                98420,
-                57880,
-                37.0
-        ));
+            YearMonth mesReferencia = mes.minusMonths(i);
 
-        resumoMensal.add(new ResumoMensal(
-                "Novembro 2025",
-                170000,
-                105000,
-                65000,
-                38.2
-        ));
+            double receita = 0;
+            double despesa = 0;
+            double lucro = receita - despesa;
+            double margem = 0;
+
+            resumoMensal.add(new ResumoMensal(
+                    mesReferencia,
+                    receita,
+                    despesa,
+                    lucro,
+                    margem
+            ));
+        }
 
         despesasPorCategoria.add(
                 new CategoriaDespesa("Folha de Pagamento", 35)
@@ -106,6 +119,7 @@ public class Relatorio {
 
         receitaTotal = 0;
         despesaTotal = 0;
+        margemLucro = 0;
 
         for (ResumoMensal resumo : resumoMensal) {
 
@@ -147,16 +161,17 @@ public class Relatorio {
     public List<CategoriaDespesa> getDespesasPorCategoria() {
         return despesasPorCategoria;
     }
+
     public static class ResumoMensal {
 
-        private String mes;
+        private YearMonth mes;
         private double receita;
         private double despesa;
         private double lucro;
         private double margem;
 
         public ResumoMensal(
-                String mes,
+                YearMonth mes,
                 double receita,
                 double despesa,
                 double lucro,
@@ -169,8 +184,17 @@ public class Relatorio {
             this.margem = margem;
         }
 
-        public String getMes() {
+        public YearMonth getMes() {
             return mes;
+        }
+
+        public String getMesFormatado() {
+            return mes.format(
+                    DateTimeFormatter.ofPattern(
+                            "MMM/yy",
+                            new Locale("pt", "BR")
+                    )
+            );
         }
 
         public double getReceita() {
@@ -189,6 +213,7 @@ public class Relatorio {
             return margem;
         }
     }
+
     public static class CategoriaDespesa {
 
         private String categoria;
