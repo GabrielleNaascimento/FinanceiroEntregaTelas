@@ -13,7 +13,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 
-public class TelaRelatorios extends JFrame {
+public class TelaRelatorios extends JPanel {
 
     private Relatorio relatorio;
 
@@ -24,12 +24,6 @@ public class TelaRelatorios extends JFrame {
     public TelaRelatorios() {
 
         relatorio = new Relatorio();
-
-        setTitle("ERP Financeiro - Módulo Financeiro");
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
 
         add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
