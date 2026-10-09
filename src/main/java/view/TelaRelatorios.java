@@ -3,11 +3,15 @@ package view;
 import model.Relatorio;
 import model.Relatorio.ResumoMensal;
 
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
 
 public class TelaRelatorios extends JFrame {
 
@@ -409,6 +413,8 @@ public class TelaRelatorios extends JFrame {
                 new Dimension(135, 30)
         );
 
+        btnGerar.addActionListener(e -> gerarWord(titulo));
+
         btnGerar.setFocusPainted(false);
 
         btnGerar.setBackground(
@@ -444,6 +450,32 @@ public class TelaRelatorios extends JFrame {
         );
 
         return card;
+    }
+
+    private void gerarWord(String titulo) {
+
+        try {
+
+            XWPFDocument documento = new XWPFDocument();
+
+            File arquivo = File.createTempFile("relatorio_", ".docx");
+
+            FileOutputStream saida = new FileOutputStream(arquivo);
+
+            documento.write(saida);
+
+            saida.close();
+            documento.close();
+
+            Desktop.getDesktop().open(arquivo);
+
+        } catch (Exception ex) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao gerar o relatório."
+            );
+        }
     }
 
     private JPanel criarParteInferior() {
