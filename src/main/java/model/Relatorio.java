@@ -76,21 +76,40 @@ public class Relatorio {
 
         for (int i = quantidade; i >= 1; i--) {
 
-            YearMonth mesReferencia = mes.minusMonths(i);
+    YearMonth mesReferencia = mes.minusMonths(i);
 
-            double receita = 0;
-            double despesa = 0;
-            double lucro = receita - despesa;
-            double margem = 0;
+    double receita = 0;
+    double despesa = 0;
 
-            resumoMensal.add(new ResumoMensal(
-                    mesReferencia,
-                    receita,
-                    despesa,
-                    lucro,
-                    margem
-            ));
+    for (Contas conta : Contas.contas) {
+
+        if (YearMonth.from(conta.getDataVencimento()).equals(mesReferencia)) {
+
+            if (conta.getTipo().equals(Contas.RECEBER)) {
+                receita += conta.getValor();
+            }
+
+            if (conta.getTipo().equals(Contas.PAGAR)) {
+                despesa += conta.getValor();
+            }
         }
+    }
+
+    double lucro = receita - despesa;
+    double margem = 0;
+
+    if (receita > 0) {
+        margem = (lucro / receita) * 100;
+    }
+
+    resumoMensal.add(new ResumoMensal(
+            mesReferencia,
+            receita,
+            despesa,
+            lucro,
+            margem
+    ));
+}
 
         despesasPorCategoria.add(
                 new CategoriaDespesa("Folha de Pagamento", 35)
