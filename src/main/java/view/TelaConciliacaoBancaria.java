@@ -9,20 +9,28 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicScrollBarUI;
@@ -45,14 +53,24 @@ public class TelaConciliacaoBancaria extends JPanel {
     private DefaultTableModel modeloTabela;
 
     // Cores utilizadas na construção visual da tela.
-    private final Color AZUL_MENU = new Color(27, 54, 93);
     private final Color FUNDO = new Color(245, 247, 250);
     private final Color BORDA = new Color(226, 232, 240);
     private final Color TEXTO = new Color(30, 38, 52);
-    private final Color BRANCO = Color.WHITE;
     private final Color VERDE = new Color(16, 185, 129);
     private final Color VERMELHO = new Color(239, 68, 68);
     private final Color LARANJA = new Color(245, 158, 11);
+    private final Color COR_TEXTO = TEXTO;
+    private final Color COR_BORDA = BORDA;
+
+    //Cores e atributos do filtro
+    private final Color COR_CINZA = new Color(105, 114, 128);
+    private final Color COR_AZUL = new Color(37, 99, 235);
+
+    private static final DateTimeFormatter FORMATO_DATA =
+        DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private JTextField txtDataInicial;
+    private JTextField txtDataFinal;
 
     // Lista que armazena as movimentações usadas na tela.
     // Tipo: ArrayList<Conciliacao>. Função: guardar os dados das conciliações.
@@ -241,76 +259,945 @@ public class TelaConciliacaoBancaria extends JPanel {
 
     private JPanel criarFiltroDatas() {
 
-        // Painel que contém o filtro de período.
-        JPanel painel = new JPanel(
-                new FlowLayout(FlowLayout.LEFT, 8, 0)
+    JPanel painel = new JPanel(
+            new FlowLayout(FlowLayout.LEFT, 8, 0)
+    );
+
+    painel.setOpaque(false);
+    painel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    JLabel lblDe = new JLabel("De:");
+    JLabel lblAte = new JLabel("Até:");
+
+    txtDataInicial = new JTextField(8);
+    txtDataFinal = new JTextField(8);
+
+    LocalDate menor = movimentacoes.isEmpty()
+            ? LocalDate.now().withDayOfMonth(1)
+            : movimentacoes.get(0).getData().withDayOfMonth(1);
+
+    LocalDate maior = movimentacoes.isEmpty()
+            ? LocalDate.now()
+            : movimentacoes.get(movimentacoes.size() - 1).getData();
+
+    txtDataInicial.setText(FORMATO_DATA.format(menor));
+
+    txtDataFinal.setText(
+            FORMATO_DATA.format(
+                    maior.withDayOfMonth(maior.lengthOfMonth())
+            )
+    );
+
+    configurarCampoData(txtDataInicial);
+    configurarCampoData(txtDataFinal);
+
+    JButton btnFiltrar = new JButton("Filtrar");
+
+    btnFiltrar.setBackground(Color.WHITE);
+    btnFiltrar.setForeground(TEXTO);
+    btnFiltrar.setFocusPainted(false);
+    btnFiltrar.setBorder(
+            BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(BORDA),
+                    new EmptyBorder(6, 14, 6, 14)
+            )
+    );
+
+    btnFiltrar.setCursor(
+            new java.awt.Cursor(
+                    java.awt.Cursor.HAND_CURSOR
+            )
+    );
+
+    btnFiltrar.addActionListener(
+            e -> filtrarPorPeriodo()
+    );
+
+    painel.add(lblDe);
+    painel.add(txtDataInicial);
+    painel.add(lblAte);
+    painel.add(txtDataFinal);
+    painel.add(btnFiltrar);
+
+    return painel;
+}
+
+private void filtrarPorPeriodo() {
+
+    try {
+        LocalDate inicio = LocalDate.parse(
+                txtDataInicial.getText().trim(),
+                FORMATO_DATA
         );
 
-        painel.setOpaque(false);
-        painel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        LocalDate fim = LocalDate.parse(
+                txtDataFinal.getText().trim(),
+                FORMATO_DATA
+        );
 
-        // Opções disponíveis para filtrar as movimentações.
-        // Tipo: String[]. Função: armazenar os períodos do filtro.
-        String[] opcoes = {
-            "Último Semestre",
-            "Último Ano",
-            "Últimos 30 dias"
-        };
+        if (fim.isBefore(inicio)) {
+            javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "A data final não pode ser anterior à data inicial.",
+                    "Período inválido",
+                    javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
 
-        // Caixa de seleção utilizada para escolher o período.
-        // Tipo: JComboBox<String>. Função: permitir ao usuário selecionar um período.
-        JComboBox<String> filtro = new JComboBox<>(opcoes);
+        atualizarTabela(
+                Conciliacao.listarPorPeriodo(inicio, fim)
+        );
 
-        filtro.setPreferredSize(new Dimension(160, 28));
-        filtro.setBackground(Color.WHITE);
+    } catch (DateTimeParseException ex) {
+        javax.swing.JOptionPane.showMessageDialog(
+                this,
+                "Selecione datas válidas no formato dd/MM/yyyy.",
+                "Data inválida",
+                javax.swing.JOptionPane.WARNING_MESSAGE
+        );
+    }
+}
 
-        filtro.addActionListener(e -> {
+    /*
+     * Configura o campo para abrir o calendário
+     * quando o usuário clicar nele.
+     */
+    private void configurarCampoData(
+            JTextField campo) {
 
-            // Opção selecionada pelo usuário.
-            // Tipo: String. Função: identificar qual período deve ser filtrado.
-            String opcaoSelecionada =
-                    (String) filtro.getSelectedItem();
+        campo.setEditable(false);
 
-            // Data atual utilizada como final do período.
-            // Tipo: LocalDate.
-            LocalDate hoje = LocalDate.now();
+        campo.setCursor(
+                new java.awt.Cursor(
+                        java.awt.Cursor.HAND_CURSOR
+                )
+        );
 
-            // Data inicial calculada de acordo com o filtro escolhido.
-            // Tipo: LocalDate.
-            LocalDate dataInicial;
+        campo.setBackground(
+                Color.WHITE
+        );
 
-            switch (opcaoSelecionada) {
+        campo.setForeground(
+                COR_TEXTO
+        );
 
-                case "Último Ano":
-                    dataInicial = hoje.minusYears(1);
-                    break;
+        campo.setHorizontalAlignment(
+                SwingConstants.CENTER
+        );
 
-                case "Últimos 30 dias":
-                    dataInicial = hoje.minusDays(30);
-                    break;
+        campo.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                COR_BORDA
+                        ),
+                        new EmptyBorder(
+                                6,
+                                8,
+                                6,
+                                8
+                        )
+                )
+        );
 
-                case "Último Semestre":
-                default:
-                    dataInicial = hoje.minusMonths(6);
-                    break;
-            }
+        /*
+         * Evita adicionar vários MouseListeners
+         * quando a tela é atualizada.
+         */
+        if (Boolean.TRUE.equals(
+                campo.getClientProperty(
+                        "calendarioConfigurado"
+                ))) {
 
-            // Lista contendo somente os dados dentro do período escolhido.
-            // Tipo: ArrayList<Conciliacao>.
-            ArrayList<Conciliacao> dadosFiltrados =
-                    Conciliacao.listarPorPeriodo(
-                            dataInicial,
-                            hoje
+            return;
+        }
+
+        campo.putClientProperty(
+                "calendarioConfigurado",
+                Boolean.TRUE
+        );
+
+        campo.addMouseListener(
+                new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(
+                            MouseEvent e) {
+
+                        mostrarCalendario(
+                                campo
+                        );
+                    }
+                }
+        );
+    }
+
+    /*
+     * Abre o calendário.
+     */
+    private void mostrarCalendario(
+            JTextField campo) {
+
+        LocalDate dataAtual;
+
+        try {
+
+            dataAtual =
+                    LocalDate.parse(
+                            campo.getText().trim(),
+                            FORMATO_DATA
                     );
 
-            // Atualiza a tabela com os dados filtrados.
-            atualizarTabela(dadosFiltrados);
+        } catch (Exception e) {
 
+            dataAtual =
+                    LocalDate.now();
+        }
+
+        final JPopupMenu popup =
+                new JPopupMenu();
+
+        popup.setBorder(
+                BorderFactory.createLineBorder(
+                        COR_BORDA
+                )
+        );
+
+        popup.setBackground(
+                Color.WHITE
+        );
+
+        JPanel calendario =
+                new JPanel();
+
+        calendario.setLayout(
+                new BoxLayout(
+                        calendario,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        calendario.setBackground(
+                Color.WHITE
+        );
+
+        calendario.setBorder(
+                new EmptyBorder(
+                        12,
+                        12,
+                        12,
+                        12
+                )
+        );
+
+        final LocalDate[] dataSelecionada = {
+                dataAtual
+        };
+
+        final YearMonth[] mesAtual = {
+                YearMonth.from(dataAtual)
+        };
+
+        final boolean[] selecionandoMes = {
+                false
+        };
+
+        construirCalendario(
+                calendario,
+                popup,
+                campo,
+                dataSelecionada,
+                mesAtual,
+                selecionandoMes
+        );
+
+        popup.add(calendario);
+
+        popup.show(
+                campo,
+                0,
+                campo.getHeight() + 4
+        );
+    }
+
+    /*
+     * Decide se o calendário vai mostrar
+     * os dias ou os meses.
+     */
+    private void construirCalendario(
+            JPanel calendario,
+            JPopupMenu popup,
+            JTextField campo,
+            LocalDate[] dataSelecionada,
+            YearMonth[] mesAtual,
+            boolean[] selecionandoMes) {
+
+        calendario.removeAll();
+
+        if (selecionandoMes[0]) {
+
+            construirSelecaoMes(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+
+        } else {
+
+            construirSelecaoDia(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        }
+
+        calendario.revalidate();
+        calendario.repaint();
+    }
+
+    /*
+     * Calendário com seleção de dias.
+     */
+    private void construirSelecaoDia(
+            JPanel calendario,
+            JPopupMenu popup,
+            JTextField campo,
+            LocalDate[] dataSelecionada,
+            YearMonth[] mesAtual,
+            boolean[] selecionandoMes) {
+
+        JPanel cabecalho =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        cabecalho.setOpaque(false);
+
+        cabecalho.setMaximumSize(
+                new Dimension(260, 40)
+        );
+
+        JButton anterior =
+                criarBotaoNavegacao("‹");
+
+        JButton proximo =
+                criarBotaoNavegacao("›");
+
+        JButton mesAno =
+                new JButton(
+                        formatarMesAno(
+                                mesAtual[0]
+                        )
+                );
+
+        mesAno.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        13
+                )
+        );
+
+        mesAno.setForeground(
+                COR_TEXTO
+        );
+
+        mesAno.setBackground(
+                Color.WHITE
+        );
+
+        mesAno.setFocusPainted(false);
+
+        mesAno.setBorderPainted(false);
+
+        mesAno.setCursor(
+                new java.awt.Cursor(
+                        java.awt.Cursor.HAND_CURSOR
+                )
+        );
+
+        anterior.addActionListener(e -> {
+
+            mesAtual[0] =
+                    mesAtual[0].minusMonths(1);
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
         });
 
-        painel.add(filtro);
+        proximo.addActionListener(e -> {
 
-        return painel;
+            mesAtual[0] =
+                    mesAtual[0].plusMonths(1);
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        /*
+         * Clicar em "Outubro 2026", por exemplo,
+         * abre a seleção dos 12 meses.
+         */
+        mesAno.addActionListener(e -> {
+
+            selecionandoMes[0] = true;
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        cabecalho.add(
+                anterior,
+                BorderLayout.WEST
+        );
+
+        cabecalho.add(
+                mesAno,
+                BorderLayout.CENTER
+        );
+
+        cabecalho.add(
+                proximo,
+                BorderLayout.EAST
+        );
+
+        calendario.add(cabecalho);
+
+        calendario.add(
+                Box.createVerticalStrut(8)
+        );
+
+        /*
+         * Dias da semana.
+         */
+        JPanel diasSemana =
+                new JPanel(
+                        new GridLayout(
+                                1,
+                                7,
+                                2,
+                                2
+                        )
+                );
+
+        diasSemana.setOpaque(false);
+
+        diasSemana.setMaximumSize(
+                new Dimension(260, 25)
+        );
+
+        String[] nomesDias = {
+                "D",
+                "S",
+                "T",
+                "Q",
+                "Q",
+                "S",
+                "S"
+        };
+
+        for (String nome : nomesDias) {
+
+            JLabel label =
+                    new JLabel(
+                            nome,
+                            SwingConstants.CENTER
+                    );
+
+            label.setFont(
+                    new Font(
+                            "SansSerif",
+                            Font.BOLD,
+                            10
+                    )
+            );
+
+            label.setForeground(
+                    COR_CINZA
+            );
+
+            diasSemana.add(label);
+        }
+
+        calendario.add(diasSemana);
+
+        calendario.add(
+                Box.createVerticalStrut(4)
+        );
+
+        /*
+         * Grade dos dias.
+         */
+        JPanel gradeDias =
+                new JPanel(
+                        new GridLayout(
+                                6,
+                                7,
+                                2,
+                                2
+                        )
+                );
+
+        gradeDias.setOpaque(false);
+
+        gradeDias.setPreferredSize(
+                new Dimension(
+                        260,
+                        210
+                )
+        );
+
+        LocalDate primeiroDia =
+                mesAtual[0].atDay(1);
+
+        /*
+         * Java:
+         * segunda = 1
+         * ...
+         * domingo = 7
+         *
+         * Como queremos domingo primeiro,
+         * usamos % 7.
+         */
+        int espacosAntes =
+                primeiroDia
+                        .getDayOfWeek()
+                        .getValue() % 7;
+
+        for (int i = 0;
+             i < espacosAntes;
+             i++) {
+
+            gradeDias.add(
+                    new JLabel("")
+            );
+        }
+
+        for (int dia = 1;
+             dia <= mesAtual[0].lengthOfMonth();
+             dia++) {
+
+            LocalDate data =
+                    mesAtual[0].atDay(dia);
+
+            JButton botaoDia =
+                    new JButton(
+                            String.valueOf(dia)
+                    );
+
+            botaoDia.setFocusPainted(
+                    false
+            );
+
+            botaoDia.setMargin(
+                    new Insets(
+                            0,
+                            0,
+                            0,
+                            0
+                    )
+            );
+
+            botaoDia.setFont(
+                    new Font(
+                            "SansSerif",
+                            Font.PLAIN,
+                            11
+                    )
+            );
+
+            botaoDia.setForeground(
+                    COR_TEXTO
+            );
+
+            botaoDia.setBackground(
+                    Color.WHITE
+            );
+
+            botaoDia.setBorderPainted(
+                    false
+            );
+
+            botaoDia.setCursor(
+                    new java.awt.Cursor(
+                            java.awt.Cursor.HAND_CURSOR
+                    )
+            );
+
+            /*
+             * Destaca a data que está atualmente
+             * selecionada.
+             */
+            if (data.equals(
+                    dataSelecionada[0])) {
+
+                botaoDia.setBackground(
+                        COR_AZUL
+                );
+
+                botaoDia.setForeground(
+                        Color.WHITE
+                );
+
+                botaoDia.setFont(
+                        new Font(
+                                "SansSerif",
+                                Font.BOLD,
+                                11
+                        )
+                );
+            }
+
+            botaoDia.addActionListener(e -> {
+
+                dataSelecionada[0] =
+                        data;
+
+                campo.setText(
+                        FORMATO_DATA.format(
+                                data
+                        )
+                );
+
+                popup.setVisible(
+                        false
+                );
+            });
+
+            gradeDias.add(
+                    botaoDia
+            );
+        }
+
+        calendario.add(gradeDias);
+    }
+
+    /*
+     * Tela para escolher o mês.
+     */
+    private void construirSelecaoMes(
+            JPanel calendario,
+            JPopupMenu popup,
+            JTextField campo,
+            LocalDate[] dataSelecionada,
+            YearMonth[] mesAtual,
+            boolean[] selecionandoMes) {
+
+        JPanel cabecalho =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        cabecalho.setOpaque(false);
+
+        cabecalho.setMaximumSize(
+                new Dimension(
+                        260,
+                        40
+                )
+        );
+
+        JButton anterior =
+                criarBotaoNavegacao("‹");
+
+        JButton proximo =
+                criarBotaoNavegacao("›");
+
+        JButton ano =
+                new JButton(
+                        String.valueOf(
+                                mesAtual[0]
+                                        .getYear()
+                        )
+                );
+
+        ano.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        13
+                )
+        );
+
+        ano.setForeground(
+                COR_TEXTO
+        );
+
+        ano.setBackground(
+                Color.WHITE
+        );
+
+        ano.setFocusPainted(false);
+
+        ano.setBorderPainted(false);
+
+        anterior.addActionListener(e -> {
+
+            mesAtual[0] =
+                    mesAtual[0].minusYears(1);
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        proximo.addActionListener(e -> {
+
+            mesAtual[0] =
+                    mesAtual[0].plusYears(1);
+
+            construirCalendario(
+                    calendario,
+                    popup,
+                    campo,
+                    dataSelecionada,
+                    mesAtual,
+                    selecionandoMes
+            );
+        });
+
+        cabecalho.add(
+                anterior,
+                BorderLayout.WEST
+        );
+
+        cabecalho.add(
+                ano,
+                BorderLayout.CENTER
+        );
+
+        cabecalho.add(
+                proximo,
+                BorderLayout.EAST
+        );
+
+        calendario.add(cabecalho);
+
+        calendario.add(
+                Box.createVerticalStrut(10)
+        );
+
+        JPanel gradeMeses =
+                new JPanel(
+                        new GridLayout(
+                                4,
+                                3,
+                                6,
+                                6
+                        )
+                );
+
+        gradeMeses.setOpaque(false);
+
+        gradeMeses.setPreferredSize(
+                new Dimension(
+                        260,
+                        180
+                )
+        );
+
+        for (Month mes :
+                Month.values()) {
+
+            JButton botaoMes =
+                    new JButton(
+                            formatarNomeMes(
+                                    mes
+                            )
+                    );
+
+            botaoMes.setFocusPainted(
+                    false
+            );
+
+            botaoMes.setBackground(
+                    Color.WHITE
+            );
+
+            botaoMes.setForeground(
+                    COR_TEXTO
+            );
+
+            botaoMes.setBorder(
+                    BorderFactory.createLineBorder(
+                            COR_BORDA
+                    )
+            );
+
+            botaoMes.setFont(
+                    new Font(
+                            "SansSerif",
+                            Font.PLAIN,
+                            11
+                    )
+            );
+
+            /*
+             * Destaca o mês atualmente selecionado.
+             */
+            if (mesAtual[0].getMonth()
+                    == mes) {
+
+                botaoMes.setBackground(
+                        COR_AZUL
+                );
+
+                botaoMes.setForeground(
+                        Color.WHITE
+                );
+
+                botaoMes.setFont(
+                        new Font(
+                                "SansSerif",
+                                Font.BOLD,
+                                11
+                        )
+                );
+            }
+
+            botaoMes.addActionListener(e -> {
+
+                mesAtual[0] =
+                        YearMonth.of(
+                                mesAtual[0]
+                                        .getYear(),
+                                mes
+                        );
+
+                selecionandoMes[0] =
+                        false;
+
+                construirCalendario(
+                        calendario,
+                        popup,
+                        campo,
+                        dataSelecionada,
+                        mesAtual,
+                        selecionandoMes
+                );
+            });
+
+            gradeMeses.add(
+                    botaoMes
+            );
+        }
+
+        calendario.add(
+                gradeMeses
+        );
+    }
+
+    private JButton criarBotaoNavegacao(
+            String texto) {
+
+        JButton botao =
+                new JButton(texto);
+
+        botao.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        botao.setForeground(
+                COR_TEXTO
+        );
+
+        botao.setBackground(
+                Color.WHITE
+        );
+
+        botao.setFocusPainted(
+                false
+        );
+
+        botao.setBorderPainted(
+                false
+        );
+
+        botao.setMargin(
+                new Insets(
+                        0,
+                        8,
+                        0,
+                        8
+                )
+        );
+
+        botao.setCursor(
+                new java.awt.Cursor(
+                        java.awt.Cursor.HAND_CURSOR
+                )
+        );
+
+        return botao;
+    }
+
+    private String formatarMesAno(
+            YearMonth mes) {
+
+        String texto =
+                mes.format(
+                        DateTimeFormatter.ofPattern(
+                                "MMMM yyyy",
+                                new Locale(
+                                        "pt",
+                                        "BR"
+                                )
+                        )
+                );
+
+        return texto.substring(0, 1)
+                .toUpperCase()
+                + texto.substring(1);
+    }
+
+    private String formatarNomeMes(
+            Month mes) {
+
+        String texto =
+                mes.getDisplayName(
+                        java.time.format.TextStyle.SHORT,
+                        new Locale(
+                                "pt",
+                                "BR"
+                        )
+                );
+
+        return texto.substring(0, 1)
+                .toUpperCase()
+                + texto.substring(1);
     }
 
     private JPanel criarCards() {
