@@ -15,7 +15,6 @@ public class Fiscal {
     public double baseCalculo;
     public double aliquota;
     public double valor;
-    public String status;
     private static final DateTimeFormatter FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private boolean pago;
     
@@ -65,7 +64,7 @@ public class Fiscal {
         return baseCalculo;
     }
 
-    public void setBaseCalculo(int baseCalculo) {
+    public void setBaseCalculo(double baseCalculo) {
         this.baseCalculo = baseCalculo;
     }
 
@@ -73,7 +72,7 @@ public class Fiscal {
         return aliquota;
     }
 
-    public void setAliquota(int aliquota) {
+    public void setAliquota(double aliquota) {
         this.aliquota = aliquota;
     }
 
@@ -105,10 +104,6 @@ public class Fiscal {
     public String getStatus() {
         if (pago) return "Pago";
         return getDataVencimento().isBefore(LocalDate.now()) ? "Vencido" : "Pendente";
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     
