@@ -42,10 +42,9 @@ public class TelaFiscal extends JPanel {
     private JLabel lblPagos;
     private JLabel lblPendentes;
 
-    public TelaFiscal(FiscalRepository repository) {
-        this.repository = java.util.Objects.requireNonNull(repository);
-    
+    public TelaFiscal() {
         setLayout(new BorderLayout());
+    
         add(criarAreaPrincipal(), BorderLayout.CENTER);
     
         lblMensagem = new JLabel("Aguardando consulta...");
@@ -394,63 +393,29 @@ public class TelaFiscal extends JPanel {
     public void carregarDados() {
         lblMensagem.setText("Carregando dados...");
     
-        SwingWorker<List<Fiscal>, Void> worker =
-            new SwingWorker<List<Fiscal>, Void>() {
+        List<Fiscal> lista = Fiscal.listarTodos();
     
-            @Override
-            protected List<Fiscal> doInBackground()
-                    throws Exception {
-                List<Fiscal> dados = repository.listarTodos();
+        tableModel.setRowCount(0);
     
-                return dados == null
-                    ? Collections.emptyList()
-                    : dados;
-            }
+        for (Fiscal f : lista) {
+            tableModel.addRow(new Object[] {
+                f.getTipoImposto(),
+                f.getCompetencia(),
+                f.getVencimento(),
+                f.getBaseCalculo(),
+                f.getAliquota(),
+                f.getValor(),
+                f.getStatus()
+            });
+        }
     
-            @Override
-            protected void done() {
-                try {
-                    List<Fiscal> lista = get();
+        atualizarCards(lista);
+        atualizarAlertas(lista);
     
-                    tableModel.setRowCount(0);
-    
-                    for (Fiscal f : lista) {
-                        tableModel.addRow(new Object[] {
-                            f.getTipoImposto(),
-                            f.getCompetencia(),
-                            f.getVencimento(),
-                            f.getBaseCalculo(),
-                            f.getAliquota(),
-                            f.getValor(),
-                            f.getStatus()
-                        });
-                    }
-                    
-                    atualizarCards(lista);
-                    atualizarAlertas(lista);
-    
-                    lblMensagem.setText(
-                        lista.isEmpty()
-                            ? "Nenhum registro encontrado."
-                            : lista.size() + " registro(s) carregado(s)."
-                    );
-    
-                } catch (Exception e) {
-                    tableModel.setRowCount(0);
-                    atualizarAlertas(Collections.emptyList());
-    
-                    lblMensagem.setText(
-                        "Não foi possível carregar os dados."
-                    );
-    
-                    System.err.println(
-                        "Erro ao consultar dados fiscais: " + e.getMessage()
-                    );
-                }
-            }
-        };
-    
-        worker.execute();
+        lblMensagem.setText(
+            lista.isEmpty()
+                ? "Nenhum registro encontrado."
+                : lista.size() + " registro(s) carregado(s)."
+        );
     }
-
 }
