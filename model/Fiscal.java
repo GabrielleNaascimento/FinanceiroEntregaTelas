@@ -108,31 +108,57 @@ public class Fiscal {
 
     
 
-    public static List<Fiscal> listarTodos() {
-        List<Fiscal> lista = new ArrayList<>();
-
-        Fiscal f1 = new Fiscal(1, "IRPJ", "09/2026", "25/10/2026", 156300, 15);
+    private static final List<Fiscal> fiscais = new ArrayList<>();
+    
+    static {
+        Fiscal f1 = new Fiscal(
+            1, "IRPJ", "09/2026", "25/10/2026", 156300, 15
+        );
         f1.setPago(true);
-        Fiscal f2 = new Fiscal(2, "CSLL", "09/2026", "25/10/2026", 156300, 9);
+    
+        Fiscal f2 = new Fiscal(
+            2, "CSLL", "09/2026", "25/10/2026", 156300, 9
+        );
         f2.setPago(true);
-        Fiscal f3 = new Fiscal(3, "PIS", "09/2026", "25/10/2026", 156300, 0.65);
+    
+        Fiscal f3 = new Fiscal(
+            3, "PIS", "09/2026", "25/10/2026", 156300, 0.65
+        );
         f3.setPago(true);
-        Fiscal f4 = new Fiscal(4, "COFINS", "09/2026", "25/10/2026", 156300, 3);
+    
+        Fiscal f4 = new Fiscal(
+            4, "COFINS", "09/2026", "25/10/2026", 156300, 3
+        );
         f4.setPago(true);
-        Fiscal f5 = new Fiscal(5, "ISS", "09/2026", "10/10/2026", 85000, 5);
+    
+        Fiscal f5 = new Fiscal(
+            5, "ISS", "09/2026", "10/10/2026", 85000, 5
+        );
         f5.setPago(true);
-        Fiscal f6 = new Fiscal(6, "ICMS", "09/2026", "20/10/2026", 71300, 12);
-        Fiscal f7 = new Fiscal(7, "IRRF (S/ Serviços)", "09/2026", "20/10/2026", 12000, 1.5);
-        Fiscal f8 = new Fiscal(8, "GPS (INSS Patronal)", "08/2026", "20/09/2026", 45200, 20);
-
-        lista.add(f1);
-        lista.add(f2);
-        lista.add(f3);
-        lista.add(f4);
-        lista.add(f5);
-        lista.add(f6);
-        lista.add(f7);
-        lista.add(f8);
-        return lista;
+    
+        Fiscal f6 = new Fiscal(
+            6, "ICMS", "09/2026", "20/10/2026", 71300, 12
+        );
+    
+        Fiscal f7 = new Fiscal(
+            7, "IRRF (S/ Serviços)", "09/2026", "20/10/2026", 12000, 1.5
+        );
+    
+        Fiscal f8 = new Fiscal(
+            8, "GPS (INSS Patronal)", "08/2026", "20/09/2026", 45200, 20
+        );
+    
+        fiscais.add(f1);
+        fiscais.add(f2);
+        fiscais.add(f3);
+        fiscais.add(f4);
+        fiscais.add(f5);
+        fiscais.add(f6);
+        fiscais.add(f7);
+        fiscais.add(f8);
+    }
+    
+    public static List<Fiscal> listarTodos() {
+        return new ArrayList<>(fiscais);
     }
 }
