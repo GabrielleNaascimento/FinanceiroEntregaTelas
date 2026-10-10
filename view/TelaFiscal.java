@@ -24,6 +24,11 @@ import java.util.List;
 import model.Fiscal;
 import java.util.ArrayList;
 import java.util.Comparator;
+import javax.swing.SwingWorker;
+import java.util.Collections;
+import model.FiscalRepository;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class TelaFiscal extends JPanel {
 
@@ -31,10 +36,24 @@ public class TelaFiscal extends JPanel {
 
     private DefaultTableModel tableModel;
     private JPanel listaAlertas;
+    private final FiscalRepository repository;
+    private JLabel lblMensagem;
+    private JLabel lblTotalImpostos;
+    private JLabel lblPagos;
+    private JLabel lblPendentes;
 
-    public TelaFiscal() {
+    public TelaFiscal(FiscalRepository repository) {
+        this.repository = java.util.Objects.requireNonNull(repository);
+    
         setLayout(new BorderLayout());
         add(criarAreaPrincipal(), BorderLayout.CENTER);
+    
+        lblMensagem = new JLabel("Aguardando consulta...");
+        lblMensagem.setBorder(
+            new EmptyBorder(5, 25, 10, 25)
+        );
+        add(lblMensagem, BorderLayout.SOUTH);
+    
         carregarDados();
     }
 
@@ -85,13 +104,91 @@ public class TelaFiscal extends JPanel {
         painel.setOpaque(false);
         painel.setAlignmentX(Component.LEFT_ALIGNMENT);
         painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
-
-        painel.add(cardMetrica("Total Impostos", "R$ 42.680,00", new Color(34, 99, 212)));
-        painel.add(cardMetrica("Pagos", "R$ 28.400,00", new Color(111, 199, 101)));
-        painel.add(cardMetrica("Pendentes", "R$ 14.280,00", new Color(224, 78, 34)));
-
+    
+        JPanel cardTotal = criarCardComValor(
+            "Total Impostos",
+            new Color(34, 99, 212)
+        );
+    
+        JPanel cardPagos = criarCardComValor(
+            "Pagos",
+            new Color(111, 199, 101)
+        );
+    
+        JPanel cardPendentes = criarCardComValor(
+            "Pendentes",
+            new Color(224, 78, 34)
+        );
+    
+        painel.add(cardTotal);
+        painel.add(cardPagos);
+        painel.add(cardPendentes);
+    
         return painel;
     }
+    
+    private JPanel criarCardComValor(String titulo, Color cor) {
+        JPanel card = new JPanel(new GridLayout(2, 1));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+            new EmptyBorder(10, 12, 10, 12)
+        ));
+    
+        JLabel lblTitulo = new JLabel(titulo);
+        lblTitulo.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        lblTitulo.setForeground(cor);
+    
+        JLabel lblValor = new JLabel("Calculando...");
+        lblValor.setFont(new Font("SansSerif", Font.BOLD, 17));
+    
+        switch (titulo) {
+            case "Total Impostos":
+                lblTotalImpostos = lblValor;
+                break;
+            case "Pagos":
+                lblPagos = lblValor;
+                break;
+            case "Pendentes":
+                lblPendentes = lblValor;
+                break;
+        }
+    
+        card.add(lblTitulo);
+        card.add(lblValor);
+    
+        return card;
+    }
+
+    
+    private void atualizarCards(List<Fiscal> lista) {
+        double total = 0;
+        double totalPago = 0;
+        double totalPendente = 0;
+    
+        for (Fiscal fiscal : lista) {
+            double valor = fiscal.getValor();
+    
+            total += valor;
+    
+            if ("Pago".equals(fiscal.getStatus())) {
+                totalPago += valor;
+            } else {
+                // Inclui impostos pendentes e vencidos.
+                totalPendente += valor;
+            }
+        }
+    
+        NumberFormat moeda =
+            NumberFormat.getCurrencyInstance(
+                new Locale("pt", "BR")
+            );
+    
+        lblTotalImpostos.setText(moeda.format(total));
+        lblPagos.setText(moeda.format(totalPago));
+        lblPendentes.setText(moeda.format(totalPendente));
+    }
+    
     // metoxo auxiliar que vai criar os cards superiores
     private JPanel cardMetrica(String titulo, String valor, Color corVariacao) {
         JPanel card = new JPanel(new GridLayout(3, 1));
@@ -293,21 +390,67 @@ public class TelaFiscal extends JPanel {
         return card;
     }
 
+
     public void carregarDados() {
-        tableModel.setRowCount(0); // limpa antes de preencher
-        List<Fiscal> lista = Fiscal.listarTodos();
-        for (Fiscal f : lista) {
-            tableModel.addRow(new Object[] {
-                f.getTipoImposto(),
-                f.getCompetencia(),
-                f.getVencimento(),
-                f.getBaseCalculo(),
-                f.getAliquota(),
-                f.getValor(),
-                f.getStatus()
-            });
-        }
-        atualizarAlertas(lista);
+        lblMensagem.setText("Carregando dados...");
+    
+        SwingWorker<List<Fiscal>, Void> worker =
+            new SwingWorker<List<Fiscal>, Void>() {
+    
+            @Override
+            protected List<Fiscal> doInBackground()
+                    throws Exception {
+                List<Fiscal> dados = repository.listarTodos();
+    
+                return dados == null
+                    ? Collections.emptyList()
+                    : dados;
+            }
+    
+            @Override
+            protected void done() {
+                try {
+                    List<Fiscal> lista = get();
+    
+                    tableModel.setRowCount(0);
+    
+                    for (Fiscal f : lista) {
+                        tableModel.addRow(new Object[] {
+                            f.getTipoImposto(),
+                            f.getCompetencia(),
+                            f.getVencimento(),
+                            f.getBaseCalculo(),
+                            f.getAliquota(),
+                            f.getValor(),
+                            f.getStatus()
+                        });
+                    }
+                    
+                    atualizarCards(lista);
+                    atualizarAlertas(lista);
+    
+                    lblMensagem.setText(
+                        lista.isEmpty()
+                            ? "Nenhum registro encontrado."
+                            : lista.size() + " registro(s) carregado(s)."
+                    );
+    
+                } catch (Exception e) {
+                    tableModel.setRowCount(0);
+                    atualizarAlertas(Collections.emptyList());
+    
+                    lblMensagem.setText(
+                        "Não foi possível carregar os dados."
+                    );
+    
+                    System.err.println(
+                        "Erro ao consultar dados fiscais: " + e.getMessage()
+                    );
+                }
+            }
+        };
+    
+        worker.execute();
     }
 
 }
