@@ -9,10 +9,21 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.text.NumberFormat;
+import java.util.Locale;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import model.Fiscal;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.ListSelectionModel;
+import java.awt.event.HierarchyEvent;
+import model.Contas;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -20,40 +31,29 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.util.List;
-import model.Fiscal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import javax.swing.SwingWorker;
-import java.util.Collections;
-import model.FiscalRepository;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 public class TelaFiscal extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private DefaultTableModel tableModel;
-    private JPanel listaAlertas;
-    private final FiscalRepository repository;
-    private JLabel lblMensagem;
-    private JLabel lblTotalImpostos;
-    private JLabel lblPagos;
-    private JLabel lblPendentes;
-
     public TelaFiscal() {
         setLayout(new BorderLayout());
-    
+
+        // agora só o centro, a sidebar é a do TelaDashboard
+        atualizarTela();
+        // Atualiza os dados ao voltar para a tela, inclusive pagamentos feitos em Contas a Pagar.
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                atualizarTela();
+            }
+        });
+    }
+
+    private void atualizarTela() {
+        removeAll();
         add(criarAreaPrincipal(), BorderLayout.CENTER);
-    
-        lblMensagem = new JLabel("Aguardando consulta...");
-        lblMensagem.setBorder(
-            new EmptyBorder(5, 25, 10, 25)
-        );
-        add(lblMensagem, BorderLayout.SOUTH);
-    
-        carregarDados();
+        revalidate();
+        repaint();
     }
 
     // painel central
@@ -103,91 +103,25 @@ public class TelaFiscal extends JPanel {
         painel.setOpaque(false);
         painel.setAlignmentX(Component.LEFT_ALIGNMENT);
         painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
-    
-        JPanel cardTotal = criarCardComValor(
-            "Total Impostos",
-            new Color(34, 99, 212)
-        );
-    
-        JPanel cardPagos = criarCardComValor(
-            "Pagos",
-            new Color(111, 199, 101)
-        );
-    
-        JPanel cardPendentes = criarCardComValor(
-            "Pendentes",
-            new Color(224, 78, 34)
-        );
-    
-        painel.add(cardTotal);
-        painel.add(cardPagos);
-        painel.add(cardPendentes);
-    
-        return painel;
-    }
-    
-    private JPanel criarCardComValor(String titulo, Color cor) {
-        JPanel card = new JPanel(new GridLayout(2, 1));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-            new EmptyBorder(10, 12, 10, 12)
-        ));
-    
-        JLabel lblTitulo = new JLabel(titulo);
-        lblTitulo.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        lblTitulo.setForeground(cor);
-    
-        JLabel lblValor = new JLabel("Calculando...");
-        lblValor.setFont(new Font("SansSerif", Font.BOLD, 17));
-    
-        switch (titulo) {
-            case "Total Impostos":
-                lblTotalImpostos = lblValor;
-                break;
-            case "Pagos":
-                lblPagos = lblValor;
-                break;
-            case "Pendentes":
-                lblPendentes = lblValor;
-                break;
-        }
-    
-        card.add(lblTitulo);
-        card.add(lblValor);
-    
-        return card;
-    }
 
-    
-    private void atualizarCards(List<Fiscal> lista) {
         double total = 0;
-        double totalPago = 0;
-        double totalPendente = 0;
-    
-        for (Fiscal fiscal : lista) {
-            double valor = fiscal.getValor();
-    
-            total += valor;
-    
-            if ("Pago".equals(fiscal.getStatus())) {
-                totalPago += valor;
+        double pagos = 0;
+        double pendentes = 0;
+        for (Fiscal imposto : Fiscal.listarImpostos()) {
+            total += imposto.getValor();
+            if ("Pago".equals(imposto.getStatusAtual())) {
+                pagos += imposto.getValor();
             } else {
-                // Inclui impostos pendentes e vencidos.
-                totalPendente += valor;
+                pendentes += imposto.getValor();
             }
         }
-    
-        NumberFormat moeda =
-            NumberFormat.getCurrencyInstance(
-                new Locale("pt", "BR")
-            );
-    
-        lblTotalImpostos.setText(moeda.format(total));
-        lblPagos.setText(moeda.format(totalPago));
-        lblPendentes.setText(moeda.format(totalPendente));
+        NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        painel.add(cardMetrica("Total Impostos", moeda.format(total), new Color(34, 99, 212)));
+        painel.add(cardMetrica("Pagos", moeda.format(pagos), new Color(111, 199, 101)));
+        painel.add(cardMetrica("Pendentes", moeda.format(pendentes), new Color(224, 78, 34)));
+
+        return painel;
     }
-    
     // metoxo auxiliar que vai criar os cards superiores
     private JPanel cardMetrica(String titulo, String valor, Color corVariacao) {
         JPanel card = new JPanel(new GridLayout(3, 1));
@@ -248,19 +182,39 @@ public class TelaFiscal extends JPanel {
         title.setBorder(new EmptyBorder(0, 0, 8, 0));
         painel.add(title, BorderLayout.NORTH);
 
-        String[] colunas = {"Imposto", "Competência", "Vencimento", "Base de Cálculo", "Alíquota", "Valor", "Status"};
-        
-        tableModel = new DefaultTableModel(colunas, 0) {
+        String[] colunas = {"ID", "Imposto", "Competência", "Vencimento", "Base de Cálculo", "Alíquota", "Valor", "Status"};
+        DefaultTableModel model = new DefaultTableModel(colunas, 0) {
+            private static final long serialVersionUID = 1L;
             @Override
             public boolean isCellEditable(int row, int col) { return false; }
         };
 
-        JTable table = new JTable(tableModel);
+        NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        for (Fiscal imposto : Fiscal.listarImpostos()) {
+            model.addRow(new Object[]{
+                    imposto.getId(),
+                    imposto.getNome(),
+                    imposto.getCompetencia(),
+                    imposto.getVencimento().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                    moeda.format(imposto.getBaseCalculo()),
+                    String.format(Locale.forLanguageTag("pt-BR"), "%.2f%%", imposto.getAliquota()),
+                    moeda.format(imposto.getValor()),
+                    imposto.getStatusAtual()
+            });
+        }
+
+        JTable table = new JTable(model);
         table.setRowHeight(30);
         table.setShowGrid(false);
 
+        // ID é usado internamente para localizar a conta correspondente em Contas a Pagar.
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         // Estiliza coluna Status
-        table.getColumnModel().getColumn(6).setCellRenderer(new DefaultTableCellRenderer() {
+        table.getColumnModel().getColumn(7).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object v, boolean isSel, boolean hasFocus, int r, int c) {
                 JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, isSel, hasFocus, r, c);
@@ -285,6 +239,33 @@ public class TelaFiscal extends JPanel {
         sp.setBorder(null);
         painel.add(sp, BorderLayout.CENTER);
 
+        JButton btnPagar = new JButton("Registrar pagamento do imposto selecionado");
+        btnPagar.setEnabled(false);
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int linha = table.getSelectedRow();
+                btnPagar.setEnabled(linha >= 0 && !"Pago".equalsIgnoreCase(String.valueOf(table.getValueAt(linha, 7))));
+            }
+        });
+        btnPagar.addActionListener(e -> {
+            int linha = table.getSelectedRow();
+            if (linha < 0) return;
+            int id = Integer.parseInt(String.valueOf(table.getValueAt(linha, 0)));
+            boolean sucesso = Contas.marcarComoConcluida(id);
+            if (sucesso) {
+                atualizarTela(); // atualiza Fiscal; Contas a Pagar usa a mesma lista/status
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Saldo insuficiente para registrar esse pagamento.",
+                        "Pagamento não realizado", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        JPanel rodape = new JPanel(new BorderLayout());
+        rodape.setOpaque(false);
+        rodape.setBorder(new EmptyBorder(8, 0, 0, 0));
+        rodape.add(btnPagar, BorderLayout.EAST);
+        painel.add(rodape, BorderLayout.SOUTH);
+
         return painel;
     }
 
@@ -301,121 +282,67 @@ public class TelaFiscal extends JPanel {
         title.setBorder(new EmptyBorder(0, 0, 8, 0));
         painel.add(title, BorderLayout.NORTH);
 
-        listaAlertas = new JPanel();
+        JPanel listaAlertas = new JPanel();
         listaAlertas.setLayout(new BoxLayout(listaAlertas, BoxLayout.Y_AXIS));
         listaAlertas.setOpaque(false);
 
-        JScrollPane sp = new JScrollPane(listaAlertas);
-        sp.setBorder(null);
-        sp.getViewport().setBackground(Color.WHITE);
-        painel.add(sp, BorderLayout.CENTER);
-
-        return painel;
-    }
-
-    private void atualizarAlertas(List<Fiscal> lista) {
-        listaAlertas.removeAll();
-
-        // do vencimento mais antigo para o mais novo (vencidos primeiro)
-        List<Fiscal> ordenada = new ArrayList<>(lista);
-        ordenada.sort(Comparator.comparing(Fiscal::getDataVencimento));
-
+        LocalDate hoje = LocalDate.now();
         boolean temAlerta = false;
-        for (Fiscal f : ordenada) {
-            String prioridade = f.getPrioridade();
-            if (prioridade == null) continue; // pago não alerta
+        for (Fiscal imposto : Fiscal.listarImpostos()) {
+            if ("Pago".equalsIgnoreCase(imposto.getStatusAtual())) {
+                continue; // impostos pagos não geram alertas
+            }
 
-            listaAlertas.add(criarCardAlerta(f, prioridade));
+            LocalDate vencimento = imposto.getVencimento();
+            long dias = ChronoUnit.DAYS.between(hoje, vencimento);
+            String nivel;
+            Color fundo;
+            Color borda;
+            String detalhe;
+
+            if (dias < 0 || "Vencido".equalsIgnoreCase(imposto.getStatusAtual())) {
+                nivel = "ALTA";
+                fundo = new Color(254, 242, 242);
+                borda = new Color(239, 68, 68);
+                detalhe = "Vencido há " + Math.max(0, -dias) + " dia(s).";
+            } else if (dias <= 7) {
+                nivel = "MÉDIA";
+                fundo = new Color(255, 247, 237);
+                borda = new Color(249, 115, 22);
+                detalhe = dias == 0 ? "Vence hoje." : "Vence em " + dias + " dia(s).";
+            } else {
+                continue; // pendência distante não é alerta de vencimento
+            }
+
+            JPanel card = new JPanel(new BorderLayout());
+            card.setBackground(fundo);
+            card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 4, 0, 0, borda),
+                    new EmptyBorder(8, 8, 8, 8)
+            ));
+            card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+
+            String vencimentoTexto = vencimento.format(
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            JLabel mensagem = new JLabel("<html><b>" + imposto.getNome() + "</b><br/>"
+                    + "<small>Competência " + imposto.getCompetencia() + " — " + detalhe
+                    + " Vencimento: " + vencimentoTexto + "</small><br/>"
+                    + "<b style='color:" + (nivel.equals("ALTA") ? "#961006" : "#c2410c")
+                    + ";'>" + nivel + "</b></html>");
+            card.add(mensagem, BorderLayout.CENTER);
+            listaAlertas.add(card);
             listaAlertas.add(Box.createVerticalStrut(6));
             temAlerta = true;
         }
 
         if (!temAlerta) {
-            listaAlertas.add(new JLabel("Nenhum imposto pendente."));
+            listaAlertas.add(new JLabel("Nenhum imposto próximo do vencimento."));
         }
 
-        listaAlertas.revalidate();
-        listaAlertas.repaint();
-    }
-
-    private JPanel criarCardAlerta(Fiscal f, String prioridade) {
-        Color corBorda;
-        Color corFundo;
-        String corTexto;
-
-        switch (prioridade) {
-            case "ALTA":
-                corBorda = new Color(239, 68, 68);
-                corFundo = new Color(254, 242, 242);
-                corTexto = "#961006";
-                break;
-            case "MÉDIA":
-                corBorda = new Color(239, 151, 68);
-                corFundo = new Color(254, 242, 242);
-                corTexto = "#eb7b0c";
-                break;
-            default: // BAIXA
-                corBorda = new Color(239, 228, 68);
-                corFundo = new Color(254, 254, 242);
-                corTexto = "#ffcc00";
-                break;
-        }
-
-        long dias = f.getDiasParaVencimento();
-        String titulo = f.getTipoImposto() + (dias < 0 ? " em Atraso" : "");
-        String prazo;
-        if (dias < 0) {
-            prazo = "Vencido há " + (-dias) + " dia(s), em " + f.getVencimento() + ".";
-        } else if (dias == 0) {
-            prazo = "Vence hoje (" + f.getVencimento() + ").";
-        } else {
-            prazo = "Vence em " + dias + " dia(s), em " + f.getVencimento() + ".";
-        }
-
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(corFundo);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 4, 0, 0, corBorda),
-                new EmptyBorder(8, 8, 8, 8)
-        ));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel msg = new JLabel("<html><b>" + titulo + "</b><br/>"
-                + "<small style='color:gray;'>" + prazo + " Valor: R$ " + f.getValor() + "</small><br/>"
-                + "<b style=\"color: " + corTexto + ";\">" + prioridade + "</b></html>");
-        card.add(msg, BorderLayout.CENTER);
-
-        return card;
-    }
-
-
-    public void carregarDados() {
-        lblMensagem.setText("Carregando dados...");
-    
-        List<Fiscal> lista = Fiscal.listarTodos();
-    
-        tableModel.setRowCount(0);
-    
-        for (Fiscal f : lista) {
-            tableModel.addRow(new Object[] {
-                f.getTipoImposto(),
-                f.getCompetencia(),
-                f.getVencimento(),
-                f.getBaseCalculo(),
-                f.getAliquota(),
-                f.getValor(),
-                f.getStatus()
-            });
-        }
-    
-        atualizarCards(lista);
-        atualizarAlertas(lista);
-    
-        lblMensagem.setText(
-            lista.isEmpty()
-                ? "Nenhum registro encontrado."
-                : lista.size() + " registro(s) carregado(s)."
-        );
+        JScrollPane sp = new JScrollPane(listaAlertas);
+        sp.setBorder(null);
+        sp.getViewport().setBackground(Color.WHITE);
+        painel.add(sp, BorderLayout.CENTER);
+        return painel;
     }
 }
