@@ -1,164 +1,74 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 
+/**
+ * Modelo dos impostos exibidos na tela Fiscal.
+ * A lista fica neste modelo para Fiscal e Contas a Pagar compartilharem os mesmos dados.
+ */
 public class Fiscal {
 
-    public int id;
-    public String tipoImposto;
-    public String competencia;
-    public String vencimento;
-    public double baseCalculo;
-    public double aliquota;
-    public double valor;
-    private static final DateTimeFormatter FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private boolean pago;
-    
+    private int id;
+    private String nome;
+    private String competencia;
+    private LocalDate vencimento;
+    private double baseCalculo;
+    private double aliquota;
+    private double valor;
+    private String status;
 
-    public Fiscal(int id, String tipoImposto, String competencia, String vencimento, double baseCalculo, double aliquota) {
+    private static final ArrayList<Fiscal> impostos = new ArrayList<>();
+
+    public Fiscal(int id, String nome, String competencia, LocalDate vencimento,
+                  double baseCalculo, double aliquota, double valor, String status) {
         this.id = id;
-        this.tipoImposto = tipoImposto;
+        this.nome = nome;
         this.competencia = competencia;
         this.vencimento = vencimento;
-        this.baseCalculo = baseCalculo;   
-        this.aliquota = aliquota;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getTipoImposto() {
-        return tipoImposto;
-    }
-
-    public void setTipoImposto(String tipoImposto) {
-        this.tipoImposto = tipoImposto;
-    }
-
-    public String getCompetencia() {
-        return competencia;
-    }
-
-    public void setCompetencia(String competencia) {
-        this.competencia = competencia;
-    }
-
-    public String getVencimento() {
-        return vencimento;
-    }
-
-    public void setVencimento(String vencimento) {
-        this.vencimento = vencimento;
-    }
-
-    public double getBaseCalculo() {
-        return baseCalculo;
-    }
-
-    public void setBaseCalculo(double baseCalculo) {
         this.baseCalculo = baseCalculo;
-    }
-
-    public double getAliquota() {
-        return aliquota;
-    }
-
-    public void setAliquota(double aliquota) {
         this.aliquota = aliquota;
+        this.valor = valor;
+        this.status = status;
     }
 
-    public double getValor() {
-        return baseCalculo * aliquota / 100;
+    /** Registros de exemplo da tela Fiscal; são criados uma única vez. */
+    public static ArrayList<Fiscal> listarImpostos() {
+        if (impostos.isEmpty()) {
+            impostos.add(new Fiscal(101, "IRPJ", "09/2026", LocalDate.of(2026, 10, 25), 156300.00, 15.0, 23445.00, "Pago"));
+            impostos.add(new Fiscal(102, "CSLL", "09/2026", LocalDate.of(2026, 10, 25), 156300.00, 9.0, 14067.00, "Pago"));
+            impostos.add(new Fiscal(103, "PIS", "09/2026", LocalDate.of(2026, 10, 25), 156300.00, 0.65, 1015.95, "Pago"));
+            impostos.add(new Fiscal(104, "COFINS", "09/2026", LocalDate.of(2026, 10, 25), 156300.00, 3.0, 4689.00, "Pago"));
+            impostos.add(new Fiscal(105, "ISS", "09/2026", LocalDate.of(2026, 10, 10), 85000.00, 5.0, 4250.00, "Pago"));
+            impostos.add(new Fiscal(106, "ICMS", "09/2026", LocalDate.of(2026, 10, 20), 71300.00, 12.0, 8556.00, "Pendente"));
+            impostos.add(new Fiscal(107, "IRRF (S/Serviços)", "09/2026", LocalDate.of(2026, 10, 20), 12000.00, 1.5, 180.00, "Pendente"));
+            impostos.add(new Fiscal(108, "GPS (INSS Patronal)", "08/2026", LocalDate.of(2026, 9, 20), 45200.00, 20.0, 9040.00, "Vencido"));
+        }
+        return impostos;
     }
 
-    public void setPago(boolean pago) {
-        this.pago = pago;
+    public static void atualizarStatus(int id, String status) {
+        for (Fiscal imposto : listarImpostos()) {
+            if (imposto.getId() == id) {
+                imposto.setStatus("Pago".equalsIgnoreCase(status) ? "Pago" : status);
+                return;
+            }
+        }
     }
 
-    public LocalDate getDataVencimento() {
-        return LocalDate.parse(vencimento, FORMATO);
+    /** Status calculado pelo vencimento; pagamento tem prioridade. */
+    public String getStatusAtual() {
+        if ("Pago".equalsIgnoreCase(status)) return "Pago";
+        return vencimento.isBefore(LocalDate.now()) ? "Vencido" : "Pendente";
     }
 
-    public long getDiasParaVencimento() {
-        return ChronoUnit.DAYS.between(LocalDate.now(), getDataVencimento());
-    }
-
-    public String getPrioridade() {
-        if (pago) return null;
-        LocalDate hoje = LocalDate.now();
-        LocalDate venc = getDataVencimento();
-        if (venc.isBefore(hoje)) return "ALTA";
-        if (!venc.isAfter(hoje.plusMonths(1))) return "MÉDIA";
-        return "BAIXA";
-    }
-
-    public String getStatus() {
-        if (pago) return "Pago";
-        return getDataVencimento().isBefore(LocalDate.now()) ? "Vencido" : "Pendente";
-    }
-
-    
-
-    private static final List<Fiscal> fiscais = new ArrayList<>();
-    
-    static {
-        Fiscal f1 = new Fiscal(
-            1, "IRPJ", "09/2026", "25/10/2026", 156300, 15
-        );
-        f1.setPago(true);
-    
-        Fiscal f2 = new Fiscal(
-            2, "CSLL", "09/2026", "25/10/2026", 156300, 9
-        );
-        f2.setPago(true);
-    
-        Fiscal f3 = new Fiscal(
-            3, "PIS", "09/2026", "25/10/2026", 156300, 0.65
-        );
-        f3.setPago(true);
-    
-        Fiscal f4 = new Fiscal(
-            4, "COFINS", "09/2026", "25/10/2026", 156300, 3
-        );
-        f4.setPago(true);
-    
-        Fiscal f5 = new Fiscal(
-            5, "ISS", "09/2026", "10/10/2026", 85000, 5
-        );
-        f5.setPago(true);
-    
-        Fiscal f6 = new Fiscal(
-            6, "ICMS", "09/2026", "20/10/2026", 71300, 12
-        );
-    
-        Fiscal f7 = new Fiscal(
-            7, "IRRF (S/ Serviços)", "09/2026", "20/10/2026", 12000, 1.5
-        );
-    
-        Fiscal f8 = new Fiscal(
-            8, "GPS (INSS Patronal)", "08/2026", "20/09/2026", 45200, 20
-        );
-    
-        fiscais.add(f1);
-        fiscais.add(f2);
-        fiscais.add(f3);
-        fiscais.add(f4);
-        fiscais.add(f5);
-        fiscais.add(f6);
-        fiscais.add(f7);
-        fiscais.add(f8);
-    }
-    
-    public static List<Fiscal> listarTodos() {
-        return new ArrayList<>(fiscais);
-    }
+    public int getId() { return id; }
+    public String getNome() { return nome; }
+    public String getCompetencia() { return competencia; }
+    public LocalDate getVencimento() { return vencimento; }
+    public double getBaseCalculo() { return baseCalculo; }
+    public double getAliquota() { return aliquota; }
+    public double getValor() { return valor; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
