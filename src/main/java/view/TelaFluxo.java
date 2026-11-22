@@ -1,7 +1,6 @@
 package view;
 
 import model.Contas;
-import model.Fluxo;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -22,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -75,10 +75,20 @@ public class TelaFluxo extends JPanel {
     private static final int ALTURA_CABECALHO = 30;
     private static final int ESPACO = 15;
 
-    private final ArrayList<Fluxo> movimentacoes = new ArrayList<>();
+    /*
+     * Agora o fluxo de caixa usa direto o model universal Contas.
+     * Cada conta concluída (Recebida/Paga) é uma movimentação.
+     */
+    private final ArrayList<Contas> movimentacoes = new ArrayList<>();
 
-    private ArrayList<Fluxo> movimentacoesFiltradas =
+    private ArrayList<Contas> movimentacoesFiltradas =
             new ArrayList<>();
+
+    /*
+     * Saldo acumulado de cada movimentação (chave = id da conta).
+     */
+    private final Map<Integer, Double> saldosAcumulados =
+            new HashMap<>();
 
     private JTextField txtDataInicial;
     private JTextField txtDataFinal;
@@ -102,64 +112,76 @@ public class TelaFluxo extends JPanel {
 
         movimentacoes.clear();
 
-        adicionarContasConcluidas(
-                Contas.listar(Contas.RECEBER, true),
-                true
+        movimentacoes.addAll(
+                Contas.listar(Contas.RECEBER, true)
         );
 
-        adicionarContasConcluidas(
-                Contas.listar(Contas.PAGAR, true),
-                false
+        movimentacoes.addAll(
+                Contas.listar(Contas.PAGAR, true)
         );
 
         movimentacoes.sort(
-                Comparator.comparing(Fluxo::getData)
+                Comparator.comparing(Contas::getDataVencimento)
         );
 
         recalcularSaldos();
     }
 
-    private void adicionarContasConcluidas(
-            ArrayList<Contas> contas,
-            boolean entrada) {
+    private void recalcularSaldos() {
 
-        for (Contas conta : contas) {
+        saldosAcumulados.clear();
 
-            double valor = entrada
-                    ? conta.getValor()
-                    : -conta.getValor();
+        double saldo = 0;
 
-            String tipo = entrada
-                    ? "Entrada"
-                    : "Saída";
+        for (Contas conta : movimentacoes) {
 
-            String categoria = entrada
-                    ? "Contas a Receber"
-                    : "Contas a Pagar";
+            saldo += valorMovimentacao(conta);
 
-            movimentacoes.add(
-                    new Fluxo(
-                            conta.getDataVencimento(),
-                            conta.getDescricao(),
-                            tipo,
-                            categoria,
-                            valor,
-                            0
-                    )
+            saldosAcumulados.put(
+                    conta.getId(),
+                    saldo
             );
         }
     }
 
-    private void recalcularSaldos() {
+    /*
+     * Métodos auxiliares: traduzem uma Conta
+     * para o vocabulário do fluxo de caixa.
+     */
+    private boolean isEntrada(Contas conta) {
 
-        double saldo = 0;
+        return Contas.RECEBER.equals(
+                conta.getTipo()
+        );
+    }
 
-        for (Fluxo fluxo : movimentacoes) {
+    private double valorMovimentacao(Contas conta) {
 
-            saldo += fluxo.getValor();
+        return isEntrada(conta)
+                ? conta.getValor()
+                : -conta.getValor();
+    }
 
-            fluxo.setSaldo(saldo);
-        }
+    private String tipoMovimentacao(Contas conta) {
+
+        return isEntrada(conta)
+                ? "Entrada"
+                : "Saída";
+    }
+
+    private String categoriaMovimentacao(Contas conta) {
+
+        return isEntrada(conta)
+                ? "Contas a Receber"
+                : "Contas a Pagar";
+    }
+
+    private double saldoAcumulado(Contas conta) {
+
+        return saldosAcumulados.getOrDefault(
+                conta.getId(),
+                0.0
+        );
     }
 
     private void definirPeriodoInicial() {
@@ -169,12 +191,12 @@ public class TelaFluxo extends JPanel {
         }
 
         LocalDate menor =
-                movimentacoes.get(0).getData();
+                movimentacoes.get(0).getDataVencimento();
 
         LocalDate maior =
                 movimentacoes.get(
                         movimentacoes.size() - 1
-                ).getData();
+                ).getDataVencimento();
 
         txtDataInicial = new JTextField(8);
         txtDataFinal = new JTextField(8);
@@ -241,9 +263,9 @@ public class TelaFluxo extends JPanel {
 
         JLabel titulo = new JLabel(
                 "<html><h2 style='margin:0;'>Fluxo de Caixa</h2>"
-                + "<span style='color:gray;'>"
-                + "Análise de entradas, saídas e saldos de caixa"
-                + "</span></html>"
+                        + "<span style='color:gray;'>"
+                        + "Análise de entradas, saídas e saldos de caixa"
+                        + "</span></html>"
         );
 
         titulo.setAlignmentX(
@@ -1348,7 +1370,7 @@ public class TelaFluxo extends JPanel {
         LocalDate inicio =
                 movimentacoes
                         .get(0)
-                        .getData()
+                        .getDataVencimento()
                         .withDayOfMonth(1);
 
         LocalDate fim =
@@ -1356,7 +1378,7 @@ public class TelaFluxo extends JPanel {
                         .get(
                                 movimentacoes.size() - 1
                         )
-                        .getData();
+                        .getDataVencimento();
 
         fim = fim.withDayOfMonth(
                 fim.lengthOfMonth()
@@ -1375,16 +1397,17 @@ public class TelaFluxo extends JPanel {
         movimentacoesFiltradas =
                 new ArrayList<>();
 
-        for (Fluxo fluxo :
+        for (Contas conta :
                 movimentacoes) {
 
-            if (!fluxo.getData()
-                    .isBefore(inicio)
-                    && !fluxo.getData()
-                    .isAfter(fim)) {
+            LocalDate data =
+                    conta.getDataVencimento();
+
+            if (!data.isBefore(inicio)
+                    && !data.isAfter(fim)) {
 
                 movimentacoesFiltradas.add(
-                        fluxo
+                        conta
                 );
             }
         }
@@ -1547,13 +1570,12 @@ public class TelaFluxo extends JPanel {
 
         double total = 0;
 
-        for (Fluxo fluxo :
+        for (Contas conta :
                 movimentacoesFiltradas) {
 
-            if ("Entrada".equals(
-                    fluxo.getTipo())) {
+            if (isEntrada(conta)) {
 
-                total += fluxo.getValor();
+                total += conta.getValor();
             }
         }
 
@@ -1564,15 +1586,12 @@ public class TelaFluxo extends JPanel {
 
         double total = 0;
 
-        for (Fluxo fluxo :
+        for (Contas conta :
                 movimentacoesFiltradas) {
 
-            if ("Saída".equals(
-                    fluxo.getTipo())) {
+            if (!isEntrada(conta)) {
 
-                total += Math.abs(
-                        fluxo.getValor()
-                );
+                total += conta.getValor();
             }
         }
 
@@ -1581,44 +1600,28 @@ public class TelaFluxo extends JPanel {
 
     private double calcularSaldoInicial() {
 
-        if (movimentacoesFiltradas.isEmpty()) {
-
-            if (movimentacoes.isEmpty()) {
-                return 0;
-            }
-
-            LocalDate inicio =
-                    obterInicioFiltro();
-
-            double saldo = 0;
-
-            for (Fluxo fluxo :
-                    movimentacoes) {
-
-                if (fluxo.getData()
-                        .isBefore(inicio)) {
-
-                    saldo += fluxo.getValor();
-                }
-            }
-
-            return saldo;
+        if (movimentacoes.isEmpty()) {
+            return 0;
         }
 
         LocalDate inicio =
-                movimentacoesFiltradas
+                movimentacoesFiltradas.isEmpty()
+                        ? obterInicioFiltro()
+                        : movimentacoesFiltradas
                         .get(0)
-                        .getData();
+                        .getDataVencimento();
 
         double saldo = 0;
 
-        for (Fluxo fluxo :
+        for (Contas conta :
                 movimentacoes) {
 
-            if (fluxo.getData()
+            if (conta.getDataVencimento()
                     .isBefore(inicio)) {
 
-                saldo += fluxo.getValor();
+                saldo += valorMovimentacao(
+                        conta
+                );
             }
         }
 
@@ -1627,18 +1630,18 @@ public class TelaFluxo extends JPanel {
 
     private double calcularSaldoFinal() {
 
-        if (movimentacoesFiltradas.isEmpty()) {
+        double saldo =
+                calcularSaldoInicial();
 
-            return calcularSaldoInicial();
+        for (Contas conta :
+                movimentacoesFiltradas) {
+
+            saldo += valorMovimentacao(
+                    conta
+            );
         }
 
-        return calcularSaldoInicial()
-                + movimentacoesFiltradas
-                        .stream()
-                        .mapToDouble(
-                                Fluxo::getValor
-                        )
-                        .sum();
+        return saldo;
     }
 
     private LocalDate obterInicioFiltro() {
@@ -1657,8 +1660,8 @@ public class TelaFluxo extends JPanel {
             return movimentacoes.isEmpty()
                     ? LocalDate.now()
                     : movimentacoes
-                            .get(0)
-                            .getData();
+                    .get(0)
+                    .getDataVencimento();
         }
     }
 
@@ -1752,38 +1755,36 @@ public class TelaFluxo extends JPanel {
         Map<LocalDate, Double> saidas =
                 new LinkedHashMap<>();
 
-        for (Fluxo fluxo :
+        for (Contas conta :
                 movimentacoesFiltradas) {
 
+            LocalDate data =
+                    conta.getDataVencimento();
+
             entradas.putIfAbsent(
-                    fluxo.getData(),
+                    data,
                     0.0
             );
 
             saidas.putIfAbsent(
-                    fluxo.getData(),
+                    data,
                     0.0
             );
 
-            if ("Entrada".equals(
-                    fluxo.getTipo())) {
+            if (isEntrada(conta)) {
 
                 entradas.put(
-                        fluxo.getData(),
-                        entradas.get(
-                                fluxo.getData()
-                        ) + fluxo.getValor()
+                        data,
+                        entradas.get(data)
+                                + conta.getValor()
                 );
 
             } else {
 
                 saidas.put(
-                        fluxo.getData(),
-                        saidas.get(
-                                fluxo.getData()
-                        ) + Math.abs(
-                                fluxo.getValor()
-                        )
+                        data,
+                        saidas.get(data)
+                                + conta.getValor()
                 );
             }
         }
@@ -2034,28 +2035,36 @@ public class TelaFluxo extends JPanel {
                     }
                 };
 
-        for (Fluxo fluxo :
+        for (Contas conta :
                 movimentacoesFiltradas) {
 
             modelo.addRow(
                     new Object[]{
 
                             FORMATO_DATA.format(
-                                    fluxo.getData()
+                                    conta.getDataVencimento()
                             ),
 
-                            fluxo.getDescricao(),
+                            conta.getDescricao(),
 
-                            fluxo.getTipo(),
+                            tipoMovimentacao(
+                                    conta
+                            ),
 
-                            fluxo.getCategoria(),
+                            categoriaMovimentacao(
+                                    conta
+                            ),
 
                             formatarValorMovimentacao(
-                                    fluxo.getValor()
+                                    valorMovimentacao(
+                                            conta
+                                    )
                             ),
 
                             formatarMoeda(
-                                    fluxo.getSaldo()
+                                    saldoAcumulado(
+                                            conta
+                                    )
                             )
                     }
             );
@@ -2174,14 +2183,14 @@ public class TelaFluxo extends JPanel {
 
                                 JLabel label =
                                         (JLabel)
-                                        super.getTableCellRendererComponent(
-                                                table,
-                                                value,
-                                                isSelected,
-                                                hasFocus,
-                                                row,
-                                                column
-                                        );
+                                                super.getTableCellRendererComponent(
+                                                        table,
+                                                        value,
+                                                        isSelected,
+                                                        hasFocus,
+                                                        row,
+                                                        column
+                                                );
 
                                 label.setHorizontalAlignment(
                                         SwingConstants.CENTER
@@ -2236,13 +2245,15 @@ public class TelaFluxo extends JPanel {
 
             return "+ "
                     + formatarMoeda(
-                            valor
-                    );
+                    valor
+            );
         }
 
         return "- "
                 + formatarMoeda(
-                        Math.abs(valor)
-                );
+                Math.abs(
+                        valor
+                )
+        );
     }
 }

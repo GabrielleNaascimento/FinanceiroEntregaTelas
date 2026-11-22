@@ -18,7 +18,7 @@ public class Contas {
     private LocalDate dataInicio;
     private LocalDate dataVencimento;
 
-    private static final ArrayList<Contas> contas = new ArrayList<>();
+    static final ArrayList<Contas> contas = new ArrayList<>();
 
     public Contas(int id, String entidade, String descricao, double valor, String tipo,
                   String status, LocalDate dataInicio, LocalDate dataVencimento) {

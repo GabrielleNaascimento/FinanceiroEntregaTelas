@@ -3,42 +3,29 @@ package view;
 import model.Relatorio;
 import model.Relatorio.ResumoMensal;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
-import java.awt.RenderingHints;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
 
 public class TelaRelatorios extends JPanel {
 
-    private static final long serialVersionUID = 1L;
-
     private Relatorio relatorio;
 
+    private DefaultTableModel modelTabela;
+    private JLabel lblTituloTabela;
+    private PainelGraficoMensal grafico;
+
     public TelaRelatorios() {
+
         relatorio = new Relatorio();
-        setLayout(new BorderLayout());
+
+        add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
     }
 
@@ -154,23 +141,12 @@ public class TelaRelatorios extends JPanel {
                 new EmptyBorder(15, 25, 15, 25)
         );
 
-        JTextField txtBusca =
-                new JTextField(" Buscar transações, contas...");
-
-        txtBusca.setPreferredSize(
-                new Dimension(280, 32)
-        );
-
-        txtBusca.setForeground(Color.GRAY);
-
         JLabel lblUser =
-                new JLabel("Jefferson - Administrador");
+                new JLabel("Jefferson Riper (Administrador)");
 
         lblUser.setFont(
                 new Font("SansSerif", Font.BOLD, 12)
         );
-
-        header.add(txtBusca, BorderLayout.WEST);
         header.add(lblUser, BorderLayout.EAST);
 
         return header;
@@ -242,6 +218,7 @@ public class TelaRelatorios extends JPanel {
 
         JComboBox<String> periodo =
                 new JComboBox<>();
+        periodo.setBackground(Color.WHITE);
 
         periodo.addItem("Último Semestre");
         periodo.addItem("Último Ano");
@@ -251,12 +228,62 @@ public class TelaRelatorios extends JPanel {
                 new Dimension(160, 32)
         );
 
+        periodo.addActionListener(e -> {
+
+            relatorio.setPeriodo(
+                    (String) periodo.getSelectedItem()
+            );
+
+            atualizarTela();
+        });
+
         painel.add(
                 periodo,
                 BorderLayout.EAST
         );
 
         return painel;
+    }
+
+    private void atualizarTela() {
+
+        lblTituloTabela.setText(
+                "Resumo Financeiro (" +
+                relatorio.getPeriodo() +
+                ")"
+        );
+
+        preencherTabela();
+
+        grafico.repaint();
+    }
+
+    private void preencherTabela() {
+
+        modelTabela.setRowCount(0);
+
+        for (ResumoMensal item :
+                relatorio.getResumoMensal()) {
+
+            modelTabela.addRow(
+                    new Object[] {
+                            item.getMesFormatado(),
+                            formatarMoeda(
+                                    item.getReceita()
+                            ),
+                            formatarMoeda(
+                                    item.getDespesa()
+                            ),
+                            formatarMoeda(
+                                    item.getLucro()
+                            ),
+                            String.format(
+                                    "%.1f%%",
+                                    item.getMargem()
+                            )
+                    }
+            );
+        }
     }
 
     private JPanel criarCards() {
@@ -380,6 +407,8 @@ public class TelaRelatorios extends JPanel {
                 new Dimension(135, 30)
         );
 
+        btnGerar.addActionListener(e -> gerarWord(titulo));
+
         btnGerar.setFocusPainted(false);
 
         btnGerar.setBackground(
@@ -398,8 +427,8 @@ public class TelaRelatorios extends JPanel {
 
         JPanel painelBotao =
                 new JPanel(
-                        new java.awt.FlowLayout(
-                                java.awt.FlowLayout.RIGHT,
+                        new FlowLayout(
+                                FlowLayout.RIGHT,
                                 0,
                                 0
                         )
@@ -415,6 +444,32 @@ public class TelaRelatorios extends JPanel {
         );
 
         return card;
+    }
+
+    private void gerarWord(String titulo) {
+
+        try {
+
+            XWPFDocument documento = new XWPFDocument();
+
+            File arquivo = File.createTempFile("relatorio_", ".docx");
+
+            FileOutputStream saida = new FileOutputStream(arquivo);
+
+            documento.write(saida);
+
+            saida.close();
+            documento.close();
+
+            Desktop.getDesktop().open(arquivo);
+
+        } catch (Exception ex) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao gerar o relatório."
+            );
+        }
     }
 
     private JPanel criarParteInferior() {
@@ -439,7 +494,9 @@ public class TelaRelatorios extends JPanel {
 
     private JPanel criarGraficoMensal() {
 
-        return new PainelGraficoMensal(relatorio);
+        grafico = new PainelGraficoMensal(relatorio);
+
+        return grafico;
     }
 
     private JPanel criarTabelaResumo() {
@@ -460,12 +517,14 @@ public class TelaRelatorios extends JPanel {
                 )
         );
 
-        JLabel titulo =
+        lblTituloTabela =
                 new JLabel(
-                        "Resumo Financeiro (Últimos 6 meses)"
+                        "Resumo Financeiro (" +
+                        relatorio.getPeriodo() +
+                        ")"
                 );
 
-        titulo.setFont(
+        lblTituloTabela.setFont(
                 new Font(
                         "SansSerif",
                         Font.BOLD,
@@ -473,14 +532,14 @@ public class TelaRelatorios extends JPanel {
                 )
         );
 
-        titulo.setBorder(
+        lblTituloTabela.setBorder(
                 new EmptyBorder(
                         0, 0, 8, 0
                 )
         );
 
         painel.add(
-                titulo,
+                lblTituloTabela,
                 BorderLayout.NORTH
         );
 
@@ -492,7 +551,7 @@ public class TelaRelatorios extends JPanel {
                 "Margem%"
         };
 
-        DefaultTableModel model =
+        modelTabela =
                 new DefaultTableModel(
                         colunas,
                         0
@@ -507,31 +566,10 @@ public class TelaRelatorios extends JPanel {
                     }
                 };
 
-        for (ResumoMensal item :
-                relatorio.getResumoMensal()) {
-
-            model.addRow(
-                    new Object[] {
-                            item.getMes(),
-                            formatarMoeda(
-                                    item.getReceita()
-                            ),
-                            formatarMoeda(
-                                    item.getDespesa()
-                            ),
-                            formatarMoeda(
-                                    item.getLucro()
-                            ),
-                            String.format(
-                                    "%.1f%%",
-                                    item.getMargem()
-                            )
-                    }
-            );
-        }
+        preencherTabela();
 
         JTable tabela =
-                new JTable(model);
+                new JTable(modelTabela);
 
         tabela.setRowHeight(30);
         tabela.setShowGrid(false);
@@ -806,7 +844,7 @@ public class TelaRelatorios extends JPanel {
             }
 
             if (maiorValor == 0) {
-                return;
+                maiorValor = 1;
             }
 
             for (int i = 0;
@@ -864,7 +902,7 @@ public class TelaRelatorios extends JPanel {
                 );
 
                 String mes =
-                        item.getMes();
+                        item.getMesFormatado();
 
                 String nomeMes =
                         mes.length() >= 3
@@ -891,5 +929,13 @@ public class TelaRelatorios extends JPanel {
             }
         }
     }
-    
+
+    public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(() -> {
+
+            new TelaRelatorios()
+                    .setVisible(true);
+        });
+    }
 }
