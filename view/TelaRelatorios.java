@@ -3,154 +3,123 @@ package view;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.TextStyle;
+import java.util.Locale;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+
 import model.Relatorio;
 import model.Relatorio.ResumoMensal;
 
-public class TelaRelatorios extends JFrame {
+public class TelaRelatorios extends JPanel {
 
-    private static final long serialVersionUID = 1L;
+    private static final Color COR_FUNDO = new Color(245, 247, 250);
+    private static final Color COR_BORDA = new Color(226, 232, 240);
+    private static final Color COR_TEXTO = new Color(30, 38, 52);
+    private static final Color COR_CINZA = new Color(105, 114, 128);
+    private static final Color COR_AZUL = new Color(37, 99, 235);
+
+    private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private static final int ESPACO = 15;
+    private static final int LARGURA_MINIMA = 800;
 
     private Relatorio relatorio;
 
+    private DefaultTableModel modelTabela;
+    private JLabel lblTituloTabela;
+    private PainelGraficoMensal grafico;
+
+    private JTextField txtDataInicial;
+    private JTextField txtDataFinal;
+
+    private JPanel painelCards;
+    private JPanel painelInferior;
+    private boolean layoutEstreito;
+
     public TelaRelatorios() {
+
+        setLayout(new BorderLayout());
+        setBackground(COR_FUNDO);
 
         relatorio = new Relatorio();
 
-        setTitle("ERP Financeiro - Módulo Financeiro");
-        setSize(1280, 850);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
-
-        add(criarSidebar(), BorderLayout.WEST);
         add(criarAreaPrincipal(), BorderLayout.CENTER);
-    }
 
-    private JPanel criarSidebar() {
-
-        JPanel sidebar = new JPanel();
-
-        sidebar.setBackground(new Color(27, 54, 93));
-        sidebar.setPreferredSize(new Dimension(220, 0));
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBorder(new EmptyBorder(20, 15, 20, 15));
-
-        JLabel lblLogo = new JLabel(
-                "<html><b>ERP Finance</b><br/>" +
-                "<small style='color:#A0AEC0;'>MÓDULO FINANCEIRO</small></html>"
-        );
-
-        lblLogo.setForeground(Color.WHITE);
-        lblLogo.setFont(new Font("SansSerif", Font.PLAIN, 15));
-        lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        sidebar.add(lblLogo);
-        sidebar.add(Box.createVerticalStrut(30));
-
-        JButton btnDashboard = criarBotaoMenu("Dashboard");
-
-        sidebar.add(btnDashboard);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnContasPagar = criarBotaoMenu(
-                "Contas a Pagar e Receber"
-        );
-
-        sidebar.add(btnContasPagar);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnFluxoCaixa = criarBotaoMenu(
-                "Fluxo de Caixa"
-        );
-
-        sidebar.add(btnFluxoCaixa);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnConciliacao = criarBotaoMenu(
-                "Conciliação Bancária"
-        );
-
-        sidebar.add(btnConciliacao);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnRelatorios = new JButton("Relatórios");
-
-        btnRelatorios.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnRelatorios.setMaximumSize(
-                new Dimension(Integer.MAX_VALUE, 38)
-        );
-        btnRelatorios.setFocusPainted(false);
-        btnRelatorios.setHorizontalAlignment(SwingConstants.LEFT);
-        btnRelatorios.setBackground(Color.WHITE);
-        btnRelatorios.setForeground(new Color(27, 54, 93));
-        btnRelatorios.setFont(
-                new Font("SansSerif", Font.BOLD, 12)
-        );
-
-        sidebar.add(btnRelatorios);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        JButton btnFiscal = criarBotaoMenu("Fiscal");
-
-        sidebar.add(btnFiscal);
-        sidebar.add(Box.createVerticalStrut(5));
-
-        return sidebar;
-    }
-
-    private JButton criarBotaoMenu(String texto) {
-
-        JButton btn = new JButton(texto);
-
-        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btn.setMaximumSize(
-                new Dimension(Integer.MAX_VALUE, 38)
-        );
-        btn.setFocusPainted(false);
-        btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setOpaque(false);
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
-        btn.setForeground(new Color(203, 213, 225));
-        btn.setFont(new Font("SansSerif", Font.PLAIN, 12));
-
-        return btn;
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                relatorio.atualizar();
+                atualizarTela();
+            }
+        });
     }
 
     private JPanel criarAreaPrincipal() {
 
         JPanel area = new JPanel(new BorderLayout());
 
-        area.setBackground(new Color(245, 247, 250));
+        area.setBackground(COR_FUNDO);
 
         area.add(criarHeader(), BorderLayout.NORTH);
-        area.add(criarConteudo(), BorderLayout.CENTER);
+
+        JScrollPane scroll = new JScrollPane(criarConteudo());
+        scroll.setBorder(null);
+        scroll.getViewport().setBackground(COR_FUNDO);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        area.add(scroll, BorderLayout.CENTER);
 
         return area;
     }
 
-     private JPanel criarHeader() {
+    private JPanel criarHeader() {
 
         JPanel header = new JPanel(new BorderLayout());
 
@@ -158,7 +127,6 @@ public class TelaRelatorios extends JFrame {
         header.setBorder(
                 new EmptyBorder(15, 25, 15, 25)
         );
-
 
         JLabel lblUser =
                 new JLabel("Jefferson Riper (Administrador)");
@@ -173,7 +141,7 @@ public class TelaRelatorios extends JFrame {
 
     private JPanel criarConteudo() {
 
-        JPanel conteudo = new JPanel(
+        JPanel conteudo = new PainelRolavel(
                 new BorderLayout(0, 15)
         );
 
@@ -183,8 +151,20 @@ public class TelaRelatorios extends JFrame {
                 new EmptyBorder(10, 25, 25, 25)
         );
 
+        JPanel topo = new JPanel();
+
+        topo.setLayout(new BoxLayout(topo, BoxLayout.Y_AXIS));
+        topo.setOpaque(false);
+
+        JPanel titulo = criarTitulo();
+        titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        topo.add(titulo);
+        topo.add(Box.createVerticalStrut(ESPACO));
+        topo.add(criarFiltroDatas());
+
         conteudo.add(
-                criarTitulo(),
+                topo,
                 BorderLayout.NORTH
         );
 
@@ -208,6 +188,13 @@ public class TelaRelatorios extends JFrame {
                 centro,
                 BorderLayout.CENTER
         );
+
+        conteudo.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                ajustarLayout(conteudo.getWidth());
+            }
+        });
 
         return conteudo;
     }
@@ -235,37 +222,83 @@ public class TelaRelatorios extends JFrame {
                 BorderLayout.WEST
         );
 
-        JComboBox<String> periodo =
-                new JComboBox<>();
-        periodo.setBackground(Color.WHITE);
-        
-        periodo.addItem("Último Semestre");
-        periodo.addItem("Último Ano");
-        periodo.addItem("Últimos 30 dias");
-
-        periodo.setPreferredSize(
-                new Dimension(160, 32)
-        );
-
-        painel.add(
-                periodo,
-                BorderLayout.EAST
-        );
-
         return painel;
     }
 
+    private void ajustarLayout(int largura) {
+
+        boolean estreito = largura < LARGURA_MINIMA;
+
+        if (estreito == layoutEstreito) {
+            return;
+        }
+
+        layoutEstreito = estreito;
+
+        ((GridLayout) painelCards.getLayout()).setColumns(estreito ? 1 : 2);
+        painelCards.setPreferredSize(new Dimension(0, estreito ? 500 : 240));
+
+        GridLayout gradeInferior = (GridLayout) painelInferior.getLayout();
+        gradeInferior.setRows(estreito ? 2 : 1);
+        gradeInferior.setColumns(estreito ? 1 : 2);
+        gradeInferior.setVgap(estreito ? 12 : 0);
+        painelInferior.setPreferredSize(new Dimension(0, estreito ? 680 : 340));
+
+        painelCards.revalidate();
+        painelInferior.revalidate();
+    }
+
+    private void atualizarTela() {
+
+        lblTituloTabela.setText(
+                "Resumo Financeiro (" +
+                relatorio.getPeriodo() +
+                ")"
+        );
+
+        preencherTabela();
+
+        grafico.repaint();
+    }
+
+    private void preencherTabela() {
+
+        modelTabela.setRowCount(0);
+
+        for (ResumoMensal item :
+                relatorio.getResumoMensal()) {
+
+            modelTabela.addRow(
+                    new Object[] {
+                            item.getMesFormatado(),
+                            formatarMoeda(
+                                    item.getReceita()
+                            ),
+                            formatarMoeda(
+                                    item.getDespesa()
+                            ),
+                            formatarMoeda(
+                                    item.getLucro()
+                            ),
+                            String.format(
+                                    "%.1f%%",
+                                    item.getMargem()
+                            )
+                    }
+            );
+        }
+    }
 
     private JPanel criarCards() {
 
         JPanel painel = new JPanel(
-                new GridLayout(2, 2, 12, 12)
+                new GridLayout(0, 2, 12, 12)
         );
 
         painel.setOpaque(false);
 
         painel.setPreferredSize(
-                new Dimension(0, 190)
+                new Dimension(0, 240)
         );
 
         painel.add(
@@ -295,6 +328,8 @@ public class TelaRelatorios extends JFrame {
                         "Breakdown detalhado e agrupado de gastos operacionais e fixos."
                 )
         );
+
+        painelCards = painel;
 
         return painel;
     }
@@ -331,13 +366,18 @@ public class TelaRelatorios extends JFrame {
                 )
         );
 
-        JLabel lblDescricao =
-                new JLabel(
-                        "<html><div style='width:400px;'>" +
-                        "<span style='color:#64748B;'>" +
-                        descricao +
-                        "</span></div></html>"
-                );
+        JTextArea lblDescricao =
+                new JTextArea(descricao);
+
+        lblDescricao.setLineWrap(true);
+        lblDescricao.setWrapStyleWord(true);
+        lblDescricao.setEditable(false);
+        lblDescricao.setFocusable(false);
+        lblDescricao.setOpaque(false);
+        lblDescricao.setBorder(null);
+        lblDescricao.setForeground(
+                new Color(100, 116, 139)
+        );
 
         lblDescricao.setFont(
                 new Font(
@@ -348,22 +388,20 @@ public class TelaRelatorios extends JFrame {
         );
 
         JPanel informacoes =
-                new JPanel();
+                new JPanel(
+                        new BorderLayout(0, 7)
+                );
 
         informacoes.setOpaque(false);
 
-        informacoes.setLayout(
-                new BoxLayout(
-                        informacoes,
-                        BoxLayout.Y_AXIS
-                )
-        );
-
-        informacoes.add(lblTitulo);
         informacoes.add(
-                Box.createVerticalStrut(7)
+                lblTitulo,
+                BorderLayout.NORTH
         );
-        informacoes.add(lblDescricao);
+        informacoes.add(
+                lblDescricao,
+                BorderLayout.CENTER
+        );
 
         card.add(
                 informacoes,
@@ -376,6 +414,8 @@ public class TelaRelatorios extends JFrame {
         btnGerar.setPreferredSize(
                 new Dimension(135, 30)
         );
+
+        btnGerar.addActionListener(e -> gerarWord(titulo));
 
         btnGerar.setFocusPainted(false);
 
@@ -395,8 +435,8 @@ public class TelaRelatorios extends JFrame {
 
         JPanel painelBotao =
                 new JPanel(
-                        new java.awt.FlowLayout(
-                                java.awt.FlowLayout.RIGHT,
+                        new FlowLayout(
+                                FlowLayout.RIGHT,
                                 0,
                                 0
                         )
@@ -414,6 +454,32 @@ public class TelaRelatorios extends JFrame {
         return card;
     }
 
+    private void gerarWord(String titulo) {
+
+        try {
+
+            XWPFDocument documento = new XWPFDocument();
+
+            File arquivo = File.createTempFile("relatorio_", ".docx");
+
+            FileOutputStream saida = new FileOutputStream(arquivo);
+
+            documento.write(saida);
+
+            saida.close();
+            documento.close();
+
+            Desktop.getDesktop().open(arquivo);
+
+        } catch (Exception ex) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao gerar o relatório."
+            );
+        }
+    }
+
     private JPanel criarParteInferior() {
 
         JPanel painel =
@@ -423,6 +489,10 @@ public class TelaRelatorios extends JFrame {
 
         painel.setOpaque(false);
 
+        painel.setPreferredSize(
+                new Dimension(0, 340)
+        );
+
         painel.add(
                 criarGraficoMensal()
         );
@@ -431,12 +501,16 @@ public class TelaRelatorios extends JFrame {
                 criarTabelaResumo()
         );
 
+        painelInferior = painel;
+
         return painel;
     }
 
     private JPanel criarGraficoMensal() {
 
-        return new PainelGraficoMensal(relatorio);
+        grafico = new PainelGraficoMensal(relatorio);
+
+        return grafico;
     }
 
     private JPanel criarTabelaResumo() {
@@ -457,12 +531,14 @@ public class TelaRelatorios extends JFrame {
                 )
         );
 
-        JLabel titulo =
+        lblTituloTabela =
                 new JLabel(
-                        "Resumo Financeiro (Últimos 6 meses)"
+                        "Resumo Financeiro (" +
+                        relatorio.getPeriodo() +
+                        ")"
                 );
 
-        titulo.setFont(
+        lblTituloTabela.setFont(
                 new Font(
                         "SansSerif",
                         Font.BOLD,
@@ -470,14 +546,14 @@ public class TelaRelatorios extends JFrame {
                 )
         );
 
-        titulo.setBorder(
+        lblTituloTabela.setBorder(
                 new EmptyBorder(
                         0, 0, 8, 0
                 )
         );
 
         painel.add(
-                titulo,
+                lblTituloTabela,
                 BorderLayout.NORTH
         );
 
@@ -489,7 +565,7 @@ public class TelaRelatorios extends JFrame {
                 "Margem%"
         };
 
-        DefaultTableModel model =
+        modelTabela =
                 new DefaultTableModel(
                         colunas,
                         0
@@ -504,31 +580,10 @@ public class TelaRelatorios extends JFrame {
                     }
                 };
 
-        for (ResumoMensal item :
-                relatorio.getResumoMensal()) {
-
-            model.addRow(
-                    new Object[] {
-                            item.getMes(),
-                            formatarMoeda(
-                                    item.getReceita()
-                            ),
-                            formatarMoeda(
-                                    item.getDespesa()
-                            ),
-                            formatarMoeda(
-                                    item.getLucro()
-                            ),
-                            String.format(
-                                    "%.1f%%",
-                                    item.getMargem()
-                            )
-                    }
-            );
-        }
+        preencherTabela();
 
         JTable tabela =
-                new JTable(model);
+                new JTable(modelTabela);
 
         tabela.setRowHeight(30);
         tabela.setShowGrid(false);
@@ -583,6 +638,7 @@ public class TelaRelatorios extends JFrame {
                 new JScrollPane(tabela);
 
         scroll.setBorder(null);
+        scroll.getViewport().setBackground(Color.WHITE);
 
         painel.add(
                 scroll,
@@ -645,6 +701,339 @@ public class TelaRelatorios extends JFrame {
                 'X',
                 '.'
         );
+    }
+
+    // ===================== FILTRO POR PERÍODO =====================
+
+    private JPanel criarFiltroDatas() {
+        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        painel.setOpaque(false);
+        painel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        txtDataInicial = new JTextField(8);
+        txtDataFinal = new JTextField(8);
+
+        txtDataInicial.setText(FORMATO_DATA.format(relatorio.getFiltroInicio()));
+        txtDataFinal.setText(FORMATO_DATA.format(relatorio.getFiltroFim()));
+
+        configurarCampoData(txtDataInicial);
+        configurarCampoData(txtDataFinal);
+
+        JButton btnFiltrar = new JButton("Filtrar");
+        btnFiltrar.setBackground(Color.WHITE);
+        btnFiltrar.setForeground(COR_TEXTO);
+        btnFiltrar.setFocusPainted(false);
+        btnFiltrar.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COR_BORDA),
+                new EmptyBorder(6, 14, 6, 14)));
+        btnFiltrar.addActionListener(e -> filtrarPorPeriodo());
+
+        painel.add(new JLabel("De:"));
+        painel.add(txtDataInicial);
+        painel.add(new JLabel("Até:"));
+        painel.add(txtDataFinal);
+        painel.add(btnFiltrar);
+
+        return painel;
+    }
+
+    private void configurarCampoData(JTextField campo) {
+        campo.setEditable(false);
+        campo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        campo.setBackground(Color.WHITE);
+        campo.setForeground(COR_TEXTO);
+        campo.setHorizontalAlignment(SwingConstants.CENTER);
+        campo.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COR_BORDA),
+                new EmptyBorder(6, 8, 6, 8)));
+
+        campo.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                mostrarCalendario(campo);
+            }
+        });
+    }
+
+    private void mostrarCalendario(JTextField campo) {
+        LocalDate dataAtual;
+        try {
+            dataAtual = LocalDate.parse(campo.getText().trim(), FORMATO_DATA);
+        } catch (Exception e) {
+            dataAtual = LocalDate.now();
+        }
+
+        final JPopupMenu popup = new JPopupMenu();
+        popup.setBorder(BorderFactory.createLineBorder(COR_BORDA));
+        popup.setBackground(Color.WHITE);
+
+        JPanel calendario = new JPanel();
+        calendario.setLayout(new BoxLayout(calendario, BoxLayout.Y_AXIS));
+        calendario.setBackground(Color.WHITE);
+        calendario.setBorder(new EmptyBorder(12, 12, 12, 12));
+
+        final LocalDate[] dataSelecionada = {dataAtual};
+        final YearMonth[] mesAtual = {YearMonth.from(dataAtual)};
+        final boolean[] selecionandoMes = {false};
+
+        construirCalendario(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+
+        popup.add(calendario);
+        popup.show(campo, 0, campo.getHeight() + 4);
+    }
+
+    private void construirCalendario(JPanel calendario, JPopupMenu popup, JTextField campo,
+                                     LocalDate[] dataSelecionada, YearMonth[] mesAtual,
+                                     boolean[] selecionandoMes) {
+        calendario.removeAll();
+
+        if (selecionandoMes[0]) {
+            construirSelecaoMes(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+        } else {
+            construirSelecaoDia(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+        }
+
+        calendario.revalidate();
+        calendario.repaint();
+    }
+
+    private void construirSelecaoDia(JPanel calendario, JPopupMenu popup, JTextField campo,
+                                     LocalDate[] dataSelecionada, YearMonth[] mesAtual,
+                                     boolean[] selecionandoMes) {
+        JPanel cabecalho = new JPanel(new BorderLayout());
+        cabecalho.setOpaque(false);
+        cabecalho.setMaximumSize(new Dimension(260, 40));
+
+        JButton anterior = criarBotaoNavegacao("‹");
+        JButton proximo = criarBotaoNavegacao("›");
+
+        JButton mesAno = new JButton(formatarMesAno(mesAtual[0]));
+        mesAno.setFont(new Font("SansSerif", Font.BOLD, 13));
+        mesAno.setForeground(COR_TEXTO);
+        mesAno.setBackground(Color.WHITE);
+        mesAno.setFocusPainted(false);
+        mesAno.setBorderPainted(false);
+        mesAno.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        anterior.addActionListener(e -> {
+            mesAtual[0] = mesAtual[0].minusMonths(1);
+            construirCalendario(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+        });
+
+        proximo.addActionListener(e -> {
+            mesAtual[0] = mesAtual[0].plusMonths(1);
+            construirCalendario(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+        });
+
+        mesAno.addActionListener(e -> {
+            selecionandoMes[0] = true;
+            construirCalendario(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+        });
+
+        cabecalho.add(anterior, BorderLayout.WEST);
+        cabecalho.add(mesAno, BorderLayout.CENTER);
+        cabecalho.add(proximo, BorderLayout.EAST);
+
+        calendario.add(cabecalho);
+        calendario.add(Box.createVerticalStrut(8));
+
+        JPanel diasSemana = new JPanel(new GridLayout(1, 7, 2, 2));
+        diasSemana.setOpaque(false);
+        diasSemana.setMaximumSize(new Dimension(260, 25));
+
+        String[] nomesDias = {"D", "S", "T", "Q", "Q", "S", "S"};
+        for (String nome : nomesDias) {
+            JLabel label = new JLabel(nome, SwingConstants.CENTER);
+            label.setFont(new Font("SansSerif", Font.BOLD, 10));
+            label.setForeground(COR_CINZA);
+            diasSemana.add(label);
+        }
+
+        calendario.add(diasSemana);
+        calendario.add(Box.createVerticalStrut(4));
+
+        JPanel gradeDias = new JPanel(new GridLayout(6, 7, 2, 2));
+        gradeDias.setOpaque(false);
+        gradeDias.setPreferredSize(new Dimension(260, 210));
+
+        LocalDate primeiroDia = mesAtual[0].atDay(1);
+
+        int espacosAntes = primeiroDia.getDayOfWeek().getValue() % 7;
+
+        for (int i = 0; i < espacosAntes; i++) {
+            gradeDias.add(new JLabel(""));
+        }
+
+        for (int dia = 1; dia <= mesAtual[0].lengthOfMonth(); dia++) {
+            LocalDate data = mesAtual[0].atDay(dia);
+
+            JButton botaoDia = new JButton(String.valueOf(dia));
+            botaoDia.setFocusPainted(false);
+            botaoDia.setMargin(new Insets(0, 0, 0, 0));
+            botaoDia.setFont(new Font("SansSerif", Font.PLAIN, 11));
+            botaoDia.setForeground(COR_TEXTO);
+            botaoDia.setBackground(Color.WHITE);
+            botaoDia.setBorderPainted(false);
+            botaoDia.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            if (data.equals(dataSelecionada[0])) {
+                botaoDia.setBackground(COR_AZUL);
+                botaoDia.setForeground(Color.WHITE);
+                botaoDia.setFont(new Font("SansSerif", Font.BOLD, 11));
+            }
+
+            botaoDia.addActionListener(e -> {
+                dataSelecionada[0] = data;
+                campo.setText(FORMATO_DATA.format(data));
+                popup.setVisible(false);
+            });
+
+            gradeDias.add(botaoDia);
+        }
+
+        calendario.add(gradeDias);
+    }
+
+    private void construirSelecaoMes(JPanel calendario, JPopupMenu popup, JTextField campo,
+                                     LocalDate[] dataSelecionada, YearMonth[] mesAtual,
+                                     boolean[] selecionandoMes) {
+        JPanel cabecalho = new JPanel(new BorderLayout());
+        cabecalho.setOpaque(false);
+        cabecalho.setMaximumSize(new Dimension(260, 40));
+
+        JButton anterior = criarBotaoNavegacao("‹");
+        JButton proximo = criarBotaoNavegacao("›");
+
+        JButton ano = new JButton(String.valueOf(mesAtual[0].getYear()));
+        ano.setFont(new Font("SansSerif", Font.BOLD, 13));
+        ano.setForeground(COR_TEXTO);
+        ano.setBackground(Color.WHITE);
+        ano.setFocusPainted(false);
+        ano.setBorderPainted(false);
+
+        anterior.addActionListener(e -> {
+            mesAtual[0] = mesAtual[0].minusYears(1);
+            construirCalendario(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+        });
+
+        proximo.addActionListener(e -> {
+            mesAtual[0] = mesAtual[0].plusYears(1);
+            construirCalendario(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+        });
+
+        cabecalho.add(anterior, BorderLayout.WEST);
+        cabecalho.add(ano, BorderLayout.CENTER);
+        cabecalho.add(proximo, BorderLayout.EAST);
+
+        calendario.add(cabecalho);
+        calendario.add(Box.createVerticalStrut(10));
+
+        JPanel gradeMeses = new JPanel(new GridLayout(4, 3, 6, 6));
+        gradeMeses.setOpaque(false);
+        gradeMeses.setPreferredSize(new Dimension(260, 180));
+
+        for (Month mes : Month.values()) {
+            JButton botaoMes = new JButton(formatarNomeMes(mes));
+            botaoMes.setFocusPainted(false);
+            botaoMes.setBackground(Color.WHITE);
+            botaoMes.setForeground(COR_TEXTO);
+            botaoMes.setBorder(BorderFactory.createLineBorder(COR_BORDA));
+            botaoMes.setFont(new Font("SansSerif", Font.PLAIN, 11));
+
+            if (mesAtual[0].getMonth() == mes) {
+                botaoMes.setBackground(COR_AZUL);
+                botaoMes.setForeground(Color.WHITE);
+                botaoMes.setFont(new Font("SansSerif", Font.BOLD, 11));
+            }
+
+            botaoMes.addActionListener(e -> {
+                mesAtual[0] = YearMonth.of(mesAtual[0].getYear(), mes);
+                selecionandoMes[0] = false;
+                construirCalendario(calendario, popup, campo, dataSelecionada, mesAtual, selecionandoMes);
+            });
+
+            gradeMeses.add(botaoMes);
+        }
+
+        calendario.add(gradeMeses);
+    }
+
+    private JButton criarBotaoNavegacao(String texto) {
+        JButton botao = new JButton(texto);
+        botao.setFont(new Font("SansSerif", Font.BOLD, 18));
+        botao.setForeground(COR_TEXTO);
+        botao.setBackground(Color.WHITE);
+        botao.setFocusPainted(false);
+        botao.setBorderPainted(false);
+        botao.setMargin(new Insets(0, 8, 0, 8));
+        botao.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return botao;
+    }
+
+    private String formatarMesAno(YearMonth mes) {
+        String texto = mes.format(DateTimeFormatter.ofPattern("MMMM yyyy", new Locale("pt", "BR")));
+        return texto.substring(0, 1).toUpperCase() + texto.substring(1);
+    }
+
+    private String formatarNomeMes(Month mes) {
+        String texto = mes.getDisplayName(TextStyle.SHORT, new Locale("pt", "BR"));
+        return texto.substring(0, 1).toUpperCase() + texto.substring(1);
+    }
+
+    private void filtrarPorPeriodo() {
+        try {
+            LocalDate inicio = LocalDate.parse(txtDataInicial.getText().trim(), FORMATO_DATA);
+            LocalDate fim = LocalDate.parse(txtDataFinal.getText().trim(), FORMATO_DATA);
+
+            if (fim.isBefore(inicio)) {
+                JOptionPane.showMessageDialog(this,
+                        "A data final não pode ser anterior à data inicial.",
+                        "Período inválido", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            relatorio.setPeriodo(inicio, fim);
+            atualizarTela();
+
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Digite as datas no formato dd/MM/yyyy.",
+                    "Data inválida", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private static class PainelRolavel extends JPanel implements Scrollable {
+
+        PainelRolavel(LayoutManager layout) {
+            super(layout);
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return visibleRect.height;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            Container pai = getParent();
+            return pai instanceof JViewport && pai.getHeight() > getPreferredSize().height;
+        }
     }
 
     private static class PainelGraficoMensal
@@ -755,7 +1144,7 @@ public class TelaRelatorios extends JFrame {
                     getWidth() - 50;
 
             int altura =
-                    getHeight() - 85;
+                    Math.max(getHeight() - 85, 1);
 
             g2.setColor(
                     new Color(226, 232, 240)
@@ -778,13 +1167,16 @@ public class TelaRelatorios extends JFrame {
             }
 
             int espacamento =
-                    largura / quantidade;
+                    Math.max(largura / quantidade, 1);
 
-            if (espacamento < 28) {
-                espacamento = 28;
+            int larguraBarra =
+                    Math.max(2, Math.min(10, espacamento / 3));
+
+            int passoRotulo = 1;
+
+            while (espacamento * passoRotulo < 28) {
+                passoRotulo++;
             }
-
-            int larguraBarra = 10;
 
             double maiorValor = 0;
 
@@ -803,7 +1195,7 @@ public class TelaRelatorios extends JFrame {
             }
 
             if (maiorValor == 0) {
-                return;
+                maiorValor = 1;
             }
 
             for (int i = 0;
@@ -818,7 +1210,7 @@ public class TelaRelatorios extends JFrame {
                 int x =
                         inicioX +
                         (i * espacamento) +
-                        15;
+                        Math.max((espacamento - (larguraBarra * 2 + 4)) / 2, 0);
 
                 int alturaReceita =
                         (int) (
@@ -852,7 +1244,7 @@ public class TelaRelatorios extends JFrame {
                 );
 
                 g2.fillRect(
-                        x + 14,
+                        x + larguraBarra + 4,
                         inicioY +
                         altura -
                         alturaDespesa,
@@ -860,8 +1252,12 @@ public class TelaRelatorios extends JFrame {
                         alturaDespesa
                 );
 
+                if (i % passoRotulo != 0) {
+                    continue;
+                }
+
                 String mes =
-                        item.getMes();
+                        item.getMesFormatado();
 
                 String nomeMes =
                         mes.length() >= 3
