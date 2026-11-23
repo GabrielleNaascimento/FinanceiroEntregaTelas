@@ -53,6 +53,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+<<<<<<< Updated upstream
+=======
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+>>>>>>> Stashed changes
 
 import model.Relatorio;
 import model.Relatorio.ResumoMensal;
@@ -70,6 +75,27 @@ public class TelaRelatorios extends JPanel {
     private static final int ESPACO = 15;
     private static final int LARGURA_MINIMA = 800;
 
+<<<<<<< Updated upstream
+=======
+    private static final int ALTURA_CARD = 120;
+    private static final int ESPACO_CARDS = 12;
+
+    private static final String[][] RELATORIOS = {
+            {"DRE — Demonstração de Resultado",
+                    "Balanço consolidado de receitas, custos, provisões e margem de lucro líquido."},
+            {"Despesas por Categoria",
+                    "Breakdown detalhado e agrupado de gastos operacionais e fixos."},
+            {"Inadimplência e Aging",
+                    "Títulos vencidos agrupados por faixa de atraso (1-30, 31-60, 61-90 e +90 dias)."},
+            {"Faturamento por Cliente",
+                    "Ranking de clientes por receita, ticket médio e participação no faturamento."},
+            {"Pagamentos por Fornecedor",
+                    "Total pago e a pagar por fornecedor, com prazos médios de pagamento."},
+            {"Centro de Custos",
+                    "Distribuição de despesas e resultados por departamento ou centro de custo."}
+    };
+
+>>>>>>> Stashed changes
     private Relatorio relatorio;
 
     private DefaultTableModel modelTabela;
@@ -236,7 +262,11 @@ public class TelaRelatorios extends JPanel {
         layoutEstreito = estreito;
 
         ((GridLayout) painelCards.getLayout()).setColumns(estreito ? 1 : 2);
+<<<<<<< Updated upstream
         painelCards.setPreferredSize(new Dimension(0, estreito ? 500 : 240));
+=======
+        painelCards.setPreferredSize(new Dimension(0, calcularAlturaCards(estreito)));
+>>>>>>> Stashed changes
 
         GridLayout gradeInferior = (GridLayout) painelInferior.getLayout();
         gradeInferior.setRows(estreito ? 2 : 1);
@@ -292,46 +322,46 @@ public class TelaRelatorios extends JPanel {
     private JPanel criarCards() {
 
         JPanel painel = new JPanel(
+<<<<<<< Updated upstream
                 new GridLayout(0, 2, 12, 12)
+=======
+                new GridLayout(0, 2, ESPACO_CARDS, ESPACO_CARDS)
+>>>>>>> Stashed changes
         );
 
         painel.setOpaque(false);
 
         painel.setPreferredSize(
+<<<<<<< Updated upstream
                 new Dimension(0, 240)
+=======
+                new Dimension(0, calcularAlturaCards(false))
+>>>>>>> Stashed changes
         );
 
-        painel.add(
-                criarCardRelatorio(
-                        "Fluxo de Caixa",
-                        "Análise detalhada de entradas e saídas de caixa previstas e realizadas."
-                )
-        );
+        for (String[] relatorioInfo : RELATORIOS) {
+            painel.add(
+                    criarCardRelatorio(
+                            relatorioInfo[0],
+                            relatorioInfo[1]
+                    )
+            );
+        }
 
-        painel.add(
-                criarCardRelatorio(
-                        "DRE — Demonstração de Resultado",
-                        "Balanço consolidado de receitas, custos, provisões e margem de lucro líquido."
-                )
-        );
-
-        painel.add(
-                criarCardRelatorio(
-                        "Contas a Pagar e Receber",
-                        "Posição consolidada de obrigações em aberto, vencidas e pagas no período."
-                )
-        );
-
-        painel.add(
-                criarCardRelatorio(
-                        "Despesas por Categoria",
-                        "Breakdown detalhado e agrupado de gastos operacionais e fixos."
-                )
-        );
+        painelCards = painel;
 
         painelCards = painel;
 
         return painel;
+    }
+
+    private int calcularAlturaCards(boolean estreito) {
+
+        int colunas = estreito ? 1 : 2;
+
+        int linhas = (int) Math.ceil(RELATORIOS.length / (double) colunas);
+
+        return linhas * ALTURA_CARD + (linhas - 1) * ESPACO_CARDS;
     }
 
     private JPanel criarCardRelatorio(
@@ -459,6 +489,17 @@ public class TelaRelatorios extends JPanel {
         try {
 
             XWPFDocument documento = new XWPFDocument();
+
+            XWPFParagraph paragrafoTitulo = documento.createParagraph();
+            XWPFRun runTitulo = paragrafoTitulo.createRun();
+            runTitulo.setBold(true);
+            runTitulo.setFontSize(18);
+            runTitulo.setText(titulo);
+
+            XWPFParagraph paragrafoPeriodo = documento.createParagraph();
+            XWPFRun runPeriodo = paragrafoPeriodo.createRun();
+            runPeriodo.setFontSize(11);
+            runPeriodo.setText("Período: " + relatorio.getPeriodo());
 
             File arquivo = File.createTempFile("relatorio_", ".docx");
 
