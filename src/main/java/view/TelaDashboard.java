@@ -259,6 +259,16 @@ public class TelaDashboard extends JFrame {
         sidebar.add(btnFiscal);
         sidebar.add(Box.createVerticalStrut(5));
 
+        JButton btnNotasFiscais = criarBotaoMenu("Notas Fiscais");
+
+        btnNotasFiscais.addActionListener(e -> {
+            mostrarTela(new TelaNotasFiscais());
+            selecionarBotao(btnNotasFiscais);
+        });
+
+        sidebar.add(btnNotasFiscais);
+        sidebar.add(Box.createVerticalStrut(5));
+
         JButton btnRelatorios = criarBotaoMenu("Relatórios");
 
         btnRelatorios.addActionListener(e -> {
