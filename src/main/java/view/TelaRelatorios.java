@@ -5,7 +5,10 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
+<<<<<<< Updated upstream
 import java.awt.Desktop;
+=======
+>>>>>>> Stashed changes
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -23,12 +26,19 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileOutputStream;
+<<<<<<< Updated upstream
 import java.time.LocalDate;
+=======
+import java.text.Normalizer;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+>>>>>>> Stashed changes
 import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.TextStyle;
+<<<<<<< Updated upstream
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
@@ -62,6 +72,52 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import model.Relatorio;
 import model.Relatorio.ResumoMensal;
 
+=======
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+
+import dao.DespesasDAO;
+import model.Contas;
+import model.Despesas;
+import model.Relatorio;
+import model.Relatorio.ResumoMensal;
+
+>>>>>>> Stashed changes
 public class TelaRelatorios extends JPanel {
 
     private static final Color COR_FUNDO = new Color(245, 247, 250);
@@ -71,16 +127,33 @@ public class TelaRelatorios extends JPanel {
     private static final Color COR_AZUL = new Color(37, 99, 235);
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+<<<<<<< Updated upstream
+=======
+    private static final DateTimeFormatter FORMATO_DATA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    private static final String USUARIO = "Jefferson Riper (Administrador)";
+
+    private static final String DRE = "DRE — Demonstração de Resultado";
+    private static final String CATEGORIAS = "Despesas por Categoria";
+    private static final String AGING = "Inadimplência e Aging";
+    private static final String CLIENTES = "Faturamento por Cliente";
+    private static final String FORNECEDORES = "Pagamentos por Fornecedor";
+    private static final String CENTROS = "Centro de Custos";
+>>>>>>> Stashed changes
 
     private static final int ESPACO = 15;
     private static final int LARGURA_MINIMA = 800;
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
     private static final int ALTURA_CARD = 120;
     private static final int ESPACO_CARDS = 12;
 
     private static final String[][] RELATORIOS = {
+<<<<<<< Updated upstream
             {"DRE — Demonstração de Resultado",
                     "Balanço consolidado de receitas, custos, provisões e margem de lucro líquido."},
             {"Despesas por Categoria",
@@ -92,6 +165,22 @@ public class TelaRelatorios extends JPanel {
             {"Pagamentos por Fornecedor",
                     "Total pago e a pagar por fornecedor, com prazos médios de pagamento."},
             {"Centro de Custos",
+                    "Distribuição de despesas e resultados por departamento ou centro de custo."}
+    };
+
+>>>>>>> Stashed changes
+=======
+            {DRE,
+                    "Balanço consolidado de receitas, custos, provisões e margem de lucro líquido."},
+            {CATEGORIAS,
+                    "Breakdown detalhado e agrupado de gastos operacionais e fixos."},
+            {AGING,
+                    "Títulos vencidos agrupados por faixa de atraso (1-30, 31-60, 61-90 e +90 dias)."},
+            {CLIENTES,
+                    "Ranking de clientes por receita, ticket médio e participação no faturamento."},
+            {FORNECEDORES,
+                    "Total pago e a pagar por fornecedor, com prazos médios de pagamento."},
+            {CENTROS,
                     "Distribuição de despesas e resultados por departamento ou centro de custo."}
     };
 
@@ -155,7 +244,7 @@ public class TelaRelatorios extends JPanel {
         );
 
         JLabel lblUser =
-                new JLabel("Jefferson Riper (Administrador)");
+                new JLabel(USUARIO);
 
         lblUser.setFont(
                 new Font("SansSerif", Font.BOLD, 12)
@@ -263,7 +352,11 @@ public class TelaRelatorios extends JPanel {
 
         ((GridLayout) painelCards.getLayout()).setColumns(estreito ? 1 : 2);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         painelCards.setPreferredSize(new Dimension(0, estreito ? 500 : 240));
+=======
+        painelCards.setPreferredSize(new Dimension(0, calcularAlturaCards(estreito)));
+>>>>>>> Stashed changes
 =======
         painelCards.setPreferredSize(new Dimension(0, calcularAlturaCards(estreito)));
 >>>>>>> Stashed changes
@@ -323,7 +416,11 @@ public class TelaRelatorios extends JPanel {
 
         JPanel painel = new JPanel(
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 new GridLayout(0, 2, 12, 12)
+=======
+                new GridLayout(0, 2, ESPACO_CARDS, ESPACO_CARDS)
+>>>>>>> Stashed changes
 =======
                 new GridLayout(0, 2, ESPACO_CARDS, ESPACO_CARDS)
 >>>>>>> Stashed changes
@@ -333,7 +430,11 @@ public class TelaRelatorios extends JPanel {
 
         painel.setPreferredSize(
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 new Dimension(0, 240)
+=======
+                new Dimension(0, calcularAlturaCards(false))
+>>>>>>> Stashed changes
 =======
                 new Dimension(0, calcularAlturaCards(false))
 >>>>>>> Stashed changes
@@ -349,8 +450,11 @@ public class TelaRelatorios extends JPanel {
         }
 
         painelCards = painel;
+<<<<<<< Updated upstream
 
         painelCards = painel;
+=======
+>>>>>>> Stashed changes
 
         return painel;
     }
@@ -488,8 +592,9 @@ public class TelaRelatorios extends JPanel {
 
         try {
 
-            XWPFDocument documento = new XWPFDocument();
+            DadosRelatorio dados = montarRelatorio(titulo);
 
+<<<<<<< Updated upstream
             XWPFParagraph paragrafoTitulo = documento.createParagraph();
             XWPFRun runTitulo = paragrafoTitulo.createRun();
             runTitulo.setBold(true);
@@ -502,23 +607,555 @@ public class TelaRelatorios extends JPanel {
             runPeriodo.setText("Período: " + relatorio.getPeriodo());
 
             File arquivo = File.createTempFile("relatorio_", ".docx");
+=======
+            JFileChooser seletor = new JFileChooser();
+            seletor.setDialogTitle("Salvar relatório");
+            seletor.setSelectedFile(new File("Relatorio_" + nomeArquivo(titulo) + ".docx"));
+>>>>>>> Stashed changes
 
-            FileOutputStream saida = new FileOutputStream(arquivo);
+            if (seletor.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
 
-            documento.write(saida);
+            File arquivo = seletor.getSelectedFile();
 
-            saida.close();
-            documento.close();
+            if (!arquivo.getName().toLowerCase().endsWith(".docx")) {
+                arquivo = new File(arquivo.getAbsolutePath() + ".docx");
+            }
 
-            Desktop.getDesktop().open(arquivo);
+            try (XWPFDocument documento = new XWPFDocument();
+                 FileOutputStream saida = new FileOutputStream(arquivo)) {
+
+                adicionarParagrafo(documento, titulo, 16, true);
+                adicionarParagrafo(documento, "Período: "
+                        + formatarData(relatorio.getFiltroInicio())
+                        + " até "
+                        + formatarData(relatorio.getFiltroFim()), 11, false);
+                adicionarParagrafo(documento, "Data utilizada: " + dados.criterioData, 10, false);
+                adicionarParagrafo(documento, "Gerado em "
+                        + LocalDateTime.now().format(FORMATO_DATA_HORA)
+                        + " por " + USUARIO, 10, false);
+
+                documento.createParagraph();
+
+                if (!dados.resumo.isEmpty()) {
+                    adicionarParagrafo(documento, "Resumo", 12, true);
+                    adicionarTabela(documento, new String[] {"Indicador", "Valor"}, dados.resumo, null);
+                    documento.createParagraph();
+                    adicionarParagrafo(documento, "Detalhamento", 12, true);
+                }
+
+                adicionarTabela(documento, dados.colunas, dados.linhas, dados.totais);
+
+                if (dados.aviso != null) {
+                    documento.createParagraph();
+                    adicionarParagrafo(documento, dados.aviso, 9, false);
+                }
+
+                documento.write(saida);
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Relatório exportado com sucesso.",
+                    "Exportação concluída", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (Exception ex) {
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Erro ao gerar o relatório."
-            );
+            JOptionPane.showMessageDialog(this,
+                    "Não foi possível exportar o relatório: " + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void adicionarParagrafo(XWPFDocument documento, String texto, int tamanho, boolean negrito) {
+
+        XWPFParagraph paragrafo = documento.createParagraph();
+        paragrafo.setAlignment(ParagraphAlignment.CENTER);
+
+        XWPFRun run = paragrafo.createRun();
+        run.setText(texto);
+        run.setBold(negrito);
+        run.setFontSize(tamanho);
+    }
+
+    private void adicionarTabela(XWPFDocument documento, String[] colunas,
+                                 List<String[]> linhas, String[] totais) {
+
+        XWPFTable tabelaWord = documento.createTable();
+        XWPFTableRow cabecalho = tabelaWord.getRow(0);
+
+        for (int i = 0; i < colunas.length; i++) {
+            XWPFTableCell celula = i == 0 ? cabecalho.getCell(0) : cabecalho.addNewTableCell();
+            escreverCelula(celula, colunas[i], true);
+        }
+
+        for (String[] linha : linhas) {
+            XWPFTableRow linhaWord = tabelaWord.createRow();
+            for (int i = 0; i < linha.length; i++) {
+                escreverCelula(linhaWord.getCell(i), linha[i], false);
+            }
+        }
+
+        if (linhas.isEmpty()) {
+            XWPFTableRow vazia = tabelaWord.createRow();
+            escreverCelula(vazia.getCell(0), "Nenhum registro encontrado no período.", false);
+        }
+
+        if (totais != null) {
+            XWPFTableRow linhaTotal = tabelaWord.createRow();
+            for (int i = 0; i < totais.length; i++) {
+                escreverCelula(linhaTotal.getCell(i), totais[i], true);
+            }
+        }
+    }
+
+    private void escreverCelula(XWPFTableCell celula, String texto, boolean negrito) {
+
+        XWPFRun run = celula.getParagraphs().get(0).createRun();
+        run.setText(texto == null ? "" : texto);
+        run.setBold(negrito);
+    }
+
+    private String nomeArquivo(String titulo) {
+
+        String semAcento = Normalizer.normalize(titulo, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+
+        return semAcento
+                .replaceAll("[^A-Za-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+    }
+
+    private DadosRelatorio montarRelatorio(String titulo) {
+
+        switch (titulo) {
+            case DRE:
+                return montarDre();
+            case CATEGORIAS:
+                return montarDespesasDao("Categoria", "Maior categoria", null);
+            case AGING:
+                return montarAging();
+            case CLIENTES:
+                return montarClientes();
+            case FORNECEDORES:
+                return montarFornecedores();
+            case CENTROS:
+                return montarDespesasDao("Centro de Custo", "Maior centro",
+                        ""
+                        + " ");
+            default:
+                throw new IllegalArgumentException("Relatório desconhecido: " + titulo);
+        }
+    }
+
+    private DadosRelatorio montarDre() {
+
+        DadosRelatorio dados = new DadosRelatorio();
+
+        LocalDate inicio = relatorio.getFiltroInicio();
+        LocalDate fim = relatorio.getFiltroFim();
+        LocalDate[] anterior = periodoAnterior();
+
+        double receita = somar(contasNoPeriodo(Contas.RECEBER, true, inicio, fim, false));
+        double despesa = somar(contasNoPeriodo(Contas.PAGAR, true, inicio, fim, false));
+        double receitaAnterior = somar(contasNoPeriodo(Contas.RECEBER, true, anterior[0], anterior[1], false));
+        double despesaAnterior = somar(contasNoPeriodo(Contas.PAGAR, true, anterior[0], anterior[1], false));
+
+        double resultado = receita - despesa;
+        double resultadoAnterior = receitaAnterior - despesaAnterior;
+
+        double margem = receita == 0 ? 0 : resultado * 100 / receita;
+        double margemAnterior = receitaAnterior == 0 ? 0 : resultadoAnterior * 100 / receitaAnterior;
+
+        dados.criterioData = "Data de vencimento das contas recebidas e pagas";
+        dados.aviso = "Somente contas concluídas."
+                + "o resultado é calculado como receitas menos despesas.";
+        dados.colunas = new String[] {"Descrição", "Período atual", "Período anterior", "Variação"};
+
+        dados.linhas.add(new String[] {"Receita bruta (contas recebidas)",
+                formatarMoeda(receita), formatarMoeda(receitaAnterior),
+                formatarVariacao(receita, receitaAnterior)});
+        dados.linhas.add(new String[] {"Despesas realizadas (contas pagas)",
+                formatarMoeda(despesa), formatarMoeda(despesaAnterior),
+                formatarVariacao(despesa, despesaAnterior)});
+        dados.linhas.add(new String[] {"Resultado do período",
+                formatarMoeda(resultado), formatarMoeda(resultadoAnterior),
+                formatarVariacao(resultado, resultadoAnterior)});
+        dados.linhas.add(new String[] {"Margem líquida",
+                formatarPercentual(margem), formatarPercentual(margemAnterior),
+                String.format("%+.1f p.p.", margem - margemAnterior)});
+
+        dados.resumo.add(new String[] {"Período atual",
+                formatarData(inicio) + " a " + formatarData(fim)});
+        dados.resumo.add(new String[] {"Período anterior",
+                formatarData(anterior[0]) + " a " + formatarData(anterior[1])});
+
+        return dados;
+    }
+
+    private DadosRelatorio montarDespesasDao(String nomeColuna, String rotuloMaior, String aviso) {
+
+        DadosRelatorio dados = new DadosRelatorio();
+
+        dados.criterioData = "Sem data. O DespesasDAO não informa datas, então o período não altera estes valores";
+        dados.aviso = aviso;
+        dados.colunas = new String[] {nomeColuna, "Valor", "Participação"};
+
+        List<Despesas> despesas = new ArrayList<>(new DespesasDAO().listarDespesas());
+        despesas.sort((a, b) -> Double.compare(b.getValor(), a.getValor()));
+
+        double total = 0;
+
+        for (Despesas despesa : despesas) {
+            total += despesa.getValor();
+        }
+
+        for (Despesas despesa : despesas) {
+            double percentual = total == 0 ? 0 : despesa.getValor() * 100 / total;
+            dados.linhas.add(new String[] {
+                    despesa.getCategoria(),
+                    formatarMoeda(despesa.getValor()),
+                    formatarPercentual(percentual)});
+        }
+
+        dados.totais = new String[] {"Total", formatarMoeda(total),
+                formatarPercentual(total == 0 ? 0 : 100)};
+
+        if (!despesas.isEmpty()) {
+            Despesas maior = despesas.get(0);
+            dados.resumo.add(new String[] {rotuloMaior,
+                    maior.getCategoria() + " — " + formatarMoeda(maior.getValor())});
+        }
+
+        dados.resumo.add(new String[] {"Registros", String.valueOf(despesas.size())});
+
+        return dados;
+    }
+
+    private DadosRelatorio montarAging() {
+
+        DadosRelatorio dados = new DadosRelatorio();
+
+        LocalDate inicio = relatorio.getFiltroInicio();
+        LocalDate fim = relatorio.getFiltroFim();
+        LocalDate hoje = LocalDate.now();
+
+        dados.criterioData = "Data de vencimento dentro do período; dias em atraso contados até "
+                + formatarData(hoje);
+        dados.colunas = new String[] {"Cliente", "Descrição", "Vencimento",
+                "Dias em atraso", "Faixa", "Valor"};
+
+        List<Contas> vencidas = new ArrayList<>();
+
+        for (Contas conta : contasNoPeriodo(Contas.RECEBER, false, inicio, fim, false)) {
+            if (vencida(conta)) {
+                vencidas.add(conta);
+            }
+        }
+
+        vencidas.sort(Comparator.comparing(Contas::getDataVencimento));
+
+        String[] faixas = {"1-30 dias", "31-60 dias", "61-90 dias", "+90 dias"};
+        double[] totaisFaixas = new double[4];
+        Map<String, Double> devedores = new LinkedHashMap<>();
+        double totalVencido = 0;
+
+        for (Contas conta : vencidas) {
+            long dias = Math.max(ChronoUnit.DAYS.between(conta.getDataVencimento(), hoje), 0);
+            int faixa = dias <= 30 ? 0 : dias <= 60 ? 1 : dias <= 90 ? 2 : 3;
+
+            totaisFaixas[faixa] += conta.getValor();
+            totalVencido += conta.getValor();
+            devedores.merge(conta.getEntidade(), conta.getValor(), Double::sum);
+
+            dados.linhas.add(new String[] {
+                    conta.getEntidade(),
+                    conta.getDescricao(),
+                    formatarData(conta.getDataVencimento()),
+                    String.valueOf(dias),
+                    faixas[faixa],
+                    formatarMoeda(conta.getValor())});
+        }
+
+        double carteira = somar(contasNoPeriodo(Contas.RECEBER, inicio, fim, false));
+
+        dados.totais = new String[] {"Total vencido", "", "", "", "", formatarMoeda(totalVencido)};
+
+        for (int i = 0; i < faixas.length; i++) {
+            dados.resumo.add(new String[] {faixas[i], formatarMoeda(totaisFaixas[i])});
+        }
+
+        dados.resumo.add(new String[] {"Total vencido", formatarMoeda(totalVencido)});
+        dados.resumo.add(new String[] {"Inadimplência sobre a carteira",
+                formatarPercentual(carteira == 0 ? 0 : totalVencido * 100 / carteira)});
+
+        String maiorDevedor = "-";
+        double maiorValor = 0;
+
+        for (Map.Entry<String, Double> devedor : devedores.entrySet()) {
+            if (devedor.getValue() > maiorValor) {
+                maiorValor = devedor.getValue();
+                maiorDevedor = devedor.getKey() + " — " + formatarMoeda(devedor.getValue());
+            }
+        }
+
+        dados.resumo.add(new String[] {"Maior devedor", maiorDevedor});
+
+        return dados;
+    }
+
+    private DadosRelatorio montarClientes() {
+
+        DadosRelatorio dados = new DadosRelatorio();
+
+        LocalDate inicio = relatorio.getFiltroInicio();
+        LocalDate fim = relatorio.getFiltroFim();
+        LocalDate[] anterior = periodoAnterior();
+
+        List<Contas> atual = contasNoPeriodo(Contas.RECEBER, inicio, fim, true);
+        List<Contas> anteriores = contasNoPeriodo(Contas.RECEBER, anterior[0], anterior[1], true);
+
+        dados.criterioData = "Data de emissão (início) das contas a receber, concluídas e pendentes";
+        dados.colunas = new String[] {"Pos.", "Cliente", "Qtd", "Faturado", "Ticket médio",
+                "Participação", "Var. período anterior", "Curva"};
+
+        Map<String, Double> faturado = agrupar(atual);
+        Map<String, Double> faturadoAnterior = agrupar(anteriores);
+        Map<String, Integer> quantidades = new LinkedHashMap<>();
+
+        for (Contas conta : atual) {
+            quantidades.merge(conta.getEntidade(), 1, Integer::sum);
+        }
+
+        double total = somar(atual);
+        double totalAnterior = somar(anteriores);
+
+        List<Map.Entry<String, Double>> ranking = new ArrayList<>(faturado.entrySet());
+        ranking.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+        double acumulado = 0;
+        int posicao = 1;
+
+        for (Map.Entry<String, Double> item : ranking) {
+            String cliente = item.getKey();
+            double valor = item.getValue();
+            int quantidade = quantidades.get(cliente);
+
+            double participacao = total == 0 ? 0 : valor * 100 / total;
+            String curva = acumulado < 80 ? "A" : acumulado < 95 ? "B" : "C";
+            acumulado += participacao;
+
+            Double valorAnterior = faturadoAnterior.get(cliente);
+
+            dados.linhas.add(new String[] {
+                    String.valueOf(posicao++),
+                    cliente,
+                    String.valueOf(quantidade),
+                    formatarMoeda(valor),
+                    formatarMoeda(valor / quantidade),
+                    formatarPercentual(participacao),
+                    valorAnterior == null ? "-" : formatarVariacao(valor, valorAnterior),
+                    curva});
+        }
+
+        dados.totais = new String[] {"", "Total", String.valueOf(atual.size()),
+                formatarMoeda(total),
+                formatarMoeda(atual.isEmpty() ? 0 : total / atual.size()),
+                formatarPercentual(total == 0 ? 0 : 100),
+                formatarVariacao(total, totalAnterior), ""};
+
+        dados.resumo.add(new String[] {"Período anterior",
+                formatarData(anterior[0]) + " a " + formatarData(anterior[1])});
+        dados.resumo.add(new String[] {"Clientes no período", String.valueOf(ranking.size())});
+
+        return dados;
+    }
+
+    private DadosRelatorio montarFornecedores() {
+
+        DadosRelatorio dados = new DadosRelatorio();
+
+        LocalDate inicio = relatorio.getFiltroInicio();
+        LocalDate fim = relatorio.getFiltroFim();
+
+        dados.criterioData = "Data de vencimento das contas a pagar; prazo médio = vencimento menos data de emissão (início)";
+        dados.colunas = new String[] {"Fornecedor", "Títulos", "Pago", "A pagar", "Vencido",
+                "Total", "Participação", "Prazo médio"};
+
+        Map<String, double[]> fornecedores = new LinkedHashMap<>();
+        List<Contas> proximas = new ArrayList<>();
+
+        for (Contas conta : contasNoPeriodo(Contas.PAGAR, true, inicio, fim, false)) {
+            double[] valores = fornecedores.computeIfAbsent(conta.getEntidade(), k -> new double[6]);
+            valores[0] += conta.getValor();
+            registrarTitulo(valores, conta);
+        }
+
+        for (Contas conta : contasNoPeriodo(Contas.PAGAR, false, inicio, fim, false)) {
+            double[] valores = fornecedores.computeIfAbsent(conta.getEntidade(), k -> new double[6]);
+
+            if (vencida(conta)) {
+                valores[2] += conta.getValor();
+            } else {
+                valores[1] += conta.getValor();
+                proximas.add(conta);
+            }
+
+            registrarTitulo(valores, conta);
+        }
+
+        List<Map.Entry<String, double[]>> ranking = new ArrayList<>(fornecedores.entrySet());
+        ranking.sort((a, b) -> Double.compare(
+                b.getValue()[0] + b.getValue()[1] + b.getValue()[2],
+                a.getValue()[0] + a.getValue()[1] + a.getValue()[2]));
+
+        double[] soma = new double[6];
+
+        for (Map.Entry<String, double[]> item : ranking) {
+            for (int i = 0; i < soma.length; i++) {
+                soma[i] += item.getValue()[i];
+            }
+        }
+
+        double totalGeral = soma[0] + soma[1] + soma[2];
+
+        for (Map.Entry<String, double[]> item : ranking) {
+            double[] v = item.getValue();
+            double total = v[0] + v[1] + v[2];
+
+            dados.linhas.add(new String[] {
+                    item.getKey(),
+                    String.valueOf((int) v[3]),
+                    formatarMoeda(v[0]),
+                    formatarMoeda(v[1]),
+                    formatarMoeda(v[2]),
+                    formatarMoeda(total),
+                    formatarPercentual(totalGeral == 0 ? 0 : total * 100 / totalGeral),
+                    v[5] == 0 ? "-" : String.format("%.0f dias", v[4] / v[5])});
+        }
+
+        dados.totais = new String[] {"Total", String.valueOf((int) soma[3]),
+                formatarMoeda(soma[0]), formatarMoeda(soma[1]), formatarMoeda(soma[2]),
+                formatarMoeda(totalGeral), formatarPercentual(totalGeral == 0 ? 0 : 100),
+                soma[5] == 0 ? "-" : String.format("%.0f dias", soma[4] / soma[5])};
+
+        proximas.sort(Comparator.comparing(Contas::getDataVencimento));
+
+        for (int i = 0; i < Math.min(3, proximas.size()); i++) {
+            Contas conta = proximas.get(i);
+            dados.resumo.add(new String[] {"Próximo vencimento",
+                    formatarData(conta.getDataVencimento()) + " — "
+                    + conta.getEntidade() + " — "
+                    + formatarMoeda(conta.getValor())});
+        }
+
+        return dados;
+    }
+
+    private void registrarTitulo(double[] valores, Contas conta) {
+
+        valores[3]++;
+
+        if (conta.getDataInicio() != null && conta.getDataVencimento() != null) {
+            valores[4] += ChronoUnit.DAYS.between(conta.getDataInicio(), conta.getDataVencimento());
+            valores[5]++;
+        }
+    }
+
+    private LocalDate[] periodoAnterior() {
+
+        LocalDate inicio = relatorio.getFiltroInicio();
+        LocalDate fim = relatorio.getFiltroFim();
+
+        long dias = ChronoUnit.DAYS.between(inicio, fim) + 1;
+        LocalDate fimAnterior = inicio.minusDays(1);
+
+        return new LocalDate[] {fimAnterior.minusDays(dias - 1), fimAnterior};
+    }
+
+    private List<Contas> contasNoPeriodo(String tipo, boolean concluida,
+                                         LocalDate inicio, LocalDate fim, boolean pelaEmissao) {
+
+        List<Contas> resultado = new ArrayList<>();
+
+        for (Contas conta : Contas.listar(tipo, concluida)) {
+            LocalDate data = pelaEmissao ? conta.getDataInicio() : conta.getDataVencimento();
+
+            if (data != null && !data.isBefore(inicio) && !data.isAfter(fim)) {
+                resultado.add(conta);
+            }
+        }
+
+        return resultado;
+    }
+
+    private List<Contas> contasNoPeriodo(String tipo, LocalDate inicio, LocalDate fim, boolean pelaEmissao) {
+
+        List<Contas> resultado = contasNoPeriodo(tipo, true, inicio, fim, pelaEmissao);
+        resultado.addAll(contasNoPeriodo(tipo, false, inicio, fim, pelaEmissao));
+
+        return resultado;
+    }
+
+    private double somar(List<Contas> contas) {
+
+        double total = 0;
+
+        for (Contas conta : contas) {
+            total += conta.getValor();
+        }
+
+        return total;
+    }
+
+    private Map<String, Double> agrupar(List<Contas> contas) {
+
+        Map<String, Double> totais = new LinkedHashMap<>();
+
+        for (Contas conta : contas) {
+            totais.merge(conta.getEntidade(), conta.getValor(), Double::sum);
+        }
+
+        return totais;
+    }
+
+    private boolean vencida(Contas conta) {
+
+        String status = conta.getStatus() == null ? "" : conta.getStatus().toLowerCase();
+        LocalDate vencimento = conta.getDataVencimento();
+
+        return status.contains("vencid")
+                || status.contains("atras")
+                || (vencimento != null && vencimento.isBefore(LocalDate.now()));
+    }
+
+    private String formatarData(LocalDate data) {
+
+        return data == null ? "-" : FORMATO_DATA.format(data);
+    }
+
+    private String formatarPercentual(double valor) {
+
+        return String.format("%.1f%%", valor);
+    }
+
+    private String formatarVariacao(double atual, double anterior) {
+
+        if (anterior == 0) {
+            return "-";
+        }
+
+        return String.format("%+.1f%%", (atual - anterior) * 100 / anterior);
+    }
+
+    private static class DadosRelatorio {
+
+        String criterioData;
+        String aviso;
+        String[] colunas;
+        String[] totais;
+        List<String[]> linhas = new ArrayList<>();
+        List<String[]> resumo = new ArrayList<>();
     }
 
     private JPanel criarParteInferior() {
