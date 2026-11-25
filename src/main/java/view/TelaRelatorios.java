@@ -5,13 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import java.awt.Desktop;
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -29,60 +22,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileOutputStream;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import java.time.LocalDate;
-=======
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
->>>>>>> Stashed changes
-=======
-import java.text.Normalizer;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
->>>>>>> Stashed changes
 import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.TextStyle;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import java.util.Locale;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.JViewport;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.Scrollable;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-<<<<<<< Updated upstream
-=======
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
->>>>>>> Stashed changes
-
-import model.Relatorio;
-import model.Relatorio.ResumoMensal;
-
-=======
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -91,21 +38,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-=======
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
->>>>>>> Stashed changes
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -122,23 +60,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-<<<<<<< Updated upstream
-=======
-
-import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableCell;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-
-import dao.DespesasDAO;
-import model.Contas;
-import model.Despesas;
-import model.Relatorio;
-import model.Relatorio.ResumoMensal;
->>>>>>> Stashed changes
 
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -154,7 +75,6 @@ import model.Despesas;
 import model.Relatorio;
 import model.Relatorio.ResumoMensal;
 
->>>>>>> Stashed changes
 public class TelaRelatorios extends JPanel {
 
     private static final Color COR_FUNDO = new Color(245, 247, 250);
@@ -164,11 +84,6 @@ public class TelaRelatorios extends JPanel {
     private static final Color COR_AZUL = new Color(37, 99, 235);
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
     private static final DateTimeFormatter FORMATO_DATA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private static final String USUARIO = "Jefferson Riper (Administrador)";
@@ -179,46 +94,14 @@ public class TelaRelatorios extends JPanel {
     private static final String CLIENTES = "Faturamento por Cliente";
     private static final String FORNECEDORES = "Pagamentos por Fornecedor";
     private static final String CENTROS = "Centro de Custos";
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
     private static final int ESPACO = 15;
     private static final int LARGURA_MINIMA = 800;
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     private static final int ALTURA_CARD = 120;
     private static final int ESPACO_CARDS = 12;
 
     private static final String[][] RELATORIOS = {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            {"DRE — Demonstração de Resultado",
-                    "Balanço consolidado de receitas, custos, provisões e margem de lucro líquido."},
-            {"Despesas por Categoria",
-                    "Breakdown detalhado e agrupado de gastos operacionais e fixos."},
-            {"Inadimplência e Aging",
-                    "Títulos vencidos agrupados por faixa de atraso (1-30, 31-60, 61-90 e +90 dias)."},
-            {"Faturamento por Cliente",
-                    "Ranking de clientes por receita, ticket médio e participação no faturamento."},
-            {"Pagamentos por Fornecedor",
-                    "Total pago e a pagar por fornecedor, com prazos médios de pagamento."},
-            {"Centro de Custos",
-                    "Distribuição de despesas e resultados por departamento ou centro de custo."}
-    };
-
->>>>>>> Stashed changes
-=======
-=======
->>>>>>> Stashed changes
             {DRE,
                     "Balanço consolidado de receitas, custos, provisões e margem de lucro líquido."},
             {CATEGORIAS,
@@ -233,10 +116,6 @@ public class TelaRelatorios extends JPanel {
                     "Distribuição de despesas e resultados por departamento ou centro de custo."}
     };
 
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     private Relatorio relatorio;
 
     private DefaultTableModel modelTabela;
@@ -403,19 +282,7 @@ public class TelaRelatorios extends JPanel {
         layoutEstreito = estreito;
 
         ((GridLayout) painelCards.getLayout()).setColumns(estreito ? 1 : 2);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        painelCards.setPreferredSize(new Dimension(0, estreito ? 500 : 240));
-=======
         painelCards.setPreferredSize(new Dimension(0, calcularAlturaCards(estreito)));
->>>>>>> Stashed changes
-=======
-        painelCards.setPreferredSize(new Dimension(0, calcularAlturaCards(estreito)));
->>>>>>> Stashed changes
-=======
-        painelCards.setPreferredSize(new Dimension(0, calcularAlturaCards(estreito)));
->>>>>>> Stashed changes
 
         GridLayout gradeInferior = (GridLayout) painelInferior.getLayout();
         gradeInferior.setRows(estreito ? 2 : 1);
@@ -471,37 +338,13 @@ public class TelaRelatorios extends JPanel {
     private JPanel criarCards() {
 
         JPanel painel = new JPanel(
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                new GridLayout(0, 2, 12, 12)
-=======
                 new GridLayout(0, 2, ESPACO_CARDS, ESPACO_CARDS)
->>>>>>> Stashed changes
-=======
-                new GridLayout(0, 2, ESPACO_CARDS, ESPACO_CARDS)
->>>>>>> Stashed changes
-=======
-                new GridLayout(0, 2, ESPACO_CARDS, ESPACO_CARDS)
->>>>>>> Stashed changes
         );
 
         painel.setOpaque(false);
 
         painel.setPreferredSize(
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                new Dimension(0, 240)
-=======
                 new Dimension(0, calcularAlturaCards(false))
->>>>>>> Stashed changes
-=======
-                new Dimension(0, calcularAlturaCards(false))
->>>>>>> Stashed changes
-=======
-                new Dimension(0, calcularAlturaCards(false))
->>>>>>> Stashed changes
         );
 
         for (String[] relatorioInfo : RELATORIOS) {
@@ -514,14 +357,6 @@ public class TelaRelatorios extends JPanel {
         }
 
         painelCards = painel;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-        painelCards = painel;
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
         return painel;
     }
@@ -660,32 +495,10 @@ public class TelaRelatorios extends JPanel {
         try {
 
             DadosRelatorio dados = montarRelatorio(titulo);
-<<<<<<< Updated upstream
-
-<<<<<<< Updated upstream
-            XWPFParagraph paragrafoTitulo = documento.createParagraph();
-            XWPFRun runTitulo = paragrafoTitulo.createRun();
-            runTitulo.setBold(true);
-            runTitulo.setFontSize(18);
-            runTitulo.setText(titulo);
-
-            XWPFParagraph paragrafoPeriodo = documento.createParagraph();
-            XWPFRun runPeriodo = paragrafoPeriodo.createRun();
-            runPeriodo.setFontSize(11);
-            runPeriodo.setText("Período: " + relatorio.getPeriodo());
-
-            File arquivo = File.createTempFile("relatorio_", ".docx");
-=======
-            JFileChooser seletor = new JFileChooser();
-            seletor.setDialogTitle("Salvar relatório");
-            seletor.setSelectedFile(new File("Relatorio_" + nomeArquivo(titulo) + ".docx"));
->>>>>>> Stashed changes
-=======
 
             JFileChooser seletor = new JFileChooser();
             seletor.setDialogTitle("Salvar relatório");
             seletor.setSelectedFile(new File("Relatorio_" + nomeArquivo(titulo) + ".docx"));
->>>>>>> Stashed changes
 
             if (seletor.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
                 return;
@@ -815,13 +628,8 @@ public class TelaRelatorios extends JPanel {
                 return montarFornecedores();
             case CENTROS:
                 return montarDespesasDao("Centro de Custo", "Maior centro",
-<<<<<<< Updated upstream
-                        ""
-                        + " ");
-=======
                         "Os dados ainda não possuem centro de custo; as categorias do DespesasDAO foram usadas como centros. "
                         + "Receitas e resultado por centro dependem de um campo de centro de custo nas contas.");
->>>>>>> Stashed changes
             default:
                 throw new IllegalArgumentException("Relatório desconhecido: " + titulo);
         }
@@ -847,11 +655,7 @@ public class TelaRelatorios extends JPanel {
         double margemAnterior = receitaAnterior == 0 ? 0 : resultadoAnterior * 100 / receitaAnterior;
 
         dados.criterioData = "Data de vencimento das contas recebidas e pagas";
-<<<<<<< Updated upstream
-        dados.aviso = "Somente contas concluídas."
-=======
         dados.aviso = "Considera somente contas concluídas. Como as contas não possuem classificação de custos e deduções, "
->>>>>>> Stashed changes
                 + "o resultado é calculado como receitas menos despesas.";
         dados.colunas = new String[] {"Descrição", "Período atual", "Período anterior", "Variação"};
 
@@ -2050,8 +1854,12 @@ public class TelaRelatorios extends JPanel {
 
         SwingUtilities.invokeLater(() -> {
 
-            new TelaRelatorios()
-                    .setVisible(true);
+            JFrame janela = new JFrame("ERP Financeiro - Relatórios");
+            janela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            janela.setSize(1280, 850);
+            janela.setLocationRelativeTo(null);
+            janela.setContentPane(new TelaRelatorios());
+            janela.setVisible(true);
         });
     }
 }
